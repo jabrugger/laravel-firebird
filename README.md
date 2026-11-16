@@ -48,6 +48,7 @@ Configure a conexão em `config/database.php`:
 | `dialect` | — | Defina `1` para bancos em dialeto 1 (ajusta tipos, datas e desliga identity). |
 | `role` | — | Role SQL enviada na conexão. |
 | `column_case` | `natural` | Caixa dos nomes de coluna nos resultados: `natural` (como o Firebird devolve: maiúsculas para identificadores sem aspas), `lower` ou `upper`. |
+| `function_identifiers` | `true` | Identificadores com formato de função (`upper(nome)`) passam sem aspas. Defina `false` para aspear sempre (recomendado se nomes de coluna vêm de entrada do usuário) e use expressões raw para funções. |
 | `server_version` | autodetectada | Fixa a versão do servidor (ex.: `'3.0.10'`), evitando a detecção via conexão. |
 | `index_names` | — | Templates de nomenclatura de PK/FK/unique/index. |
 
@@ -105,6 +106,7 @@ Configure the connection in `config/database.php`:
 | `dialect` | — | Set `1` for dialect-1 databases (adjusts types, dates, disables identity). |
 | `role` | — | SQL role sent on connect. |
 | `column_case` | `natural` | Case of result column names: `natural` (as Firebird returns them: uppercase for unquoted identifiers), `lower` or `upper`. |
+| `function_identifiers` | `true` | Identifiers shaped like function calls (`upper(name)`) are passed through unquoted. Set `false` to always quote (recommended when column names come from user input) and use raw expressions for functions. |
 | `server_version` | auto-detected | Pin the server version (e.g. `'3.0.10'`) to skip detection over the connection. |
 | `index_names` | — | Naming templates for PK/FK/unique/index. |
 
