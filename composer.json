@@ -1,7 +1,7 @@
 {
   "$schema": "https://getcomposer.org/schema.json",
   "name": "dasu/laravel-firebird",
-  "description": "Firebird database driver for the Laravel Framework",
+  "description": "Firebird database driver for Laravel (Firebird 2.5 to 5.0): Query Builder, Eloquent, pagination, upsert via MERGE, identity columns, computed columns and schema introspection. Fork of benson/laravel-firebird with Spanish and English documentation.",
   "license": "MIT",
   "homepage": "https://github.com/jabrugger/laravel-firebird",
   "keywords": ["laravel", "firebird", "database", "pdo", "driver"],
