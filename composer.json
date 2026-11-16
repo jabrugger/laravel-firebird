@@ -1,8 +1,10 @@
 {
   "$schema": "https://getcomposer.org/schema.json",
-  "name": "benson/laravel-firebird",
+  "name": "dasu/laravel-firebird",
   "description": "Firebird database driver for the Laravel Framework",
   "license": "MIT",
+  "homepage": "https://github.com/jabrugger/laravel-firebird",
+  "keywords": ["laravel", "firebird", "database", "pdo", "driver"],
   "require": {
     "php": "^8.2",
     "illuminate/support": "^12.17|^13.0",

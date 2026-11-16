@@ -1,4 +1,4 @@
-# Documentación del driver `benson/laravel-firebird`
+# Documentación del driver `dasu/laravel-firebird`
 
 Referencia de las funcionalidades del driver de Firebird para Laravel. Se mantiene
 al día a medida que se agregan recursos.

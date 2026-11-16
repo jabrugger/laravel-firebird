@@ -22,16 +22,24 @@ Integración previsible de Firebird con Laravel: Query Builder, Eloquent, pagina
 
 ### Instalación
 
-El paquete **no está publicado en Packagist**: hay que declarar el repositorio de GitHub en el `composer.json` de la aplicación y fijar la versión:
-
-```json
-{
-    "require": { "benson/laravel-firebird": "4.0.2" },
-    "repositories": [
-        { "type": "vcs", "url": "https://github.com/bensonsbc/laravel-firebird" }
-    ]
-}
+```bash
+composer require dasu/laravel-firebird
 ```
+
+El paquete se publica con el nombre **`dasu/laravel-firebird`** (el código es el del fork de Benson; ver los créditos arriba). El espacio de nombres PHP no cambia: `Benson\LaravelFirebird`, y el proveedor de servicios se registra solo.
+
+> **Si el paquete todavía no aparece en Packagist**, declarar el repositorio en el `composer.json` de la aplicación y fijar la versión:
+>
+> ```json
+> {
+>     "require": { "dasu/laravel-firebird": "4.0.3" },
+>     "repositories": [
+>         { "type": "vcs", "url": "https://github.com/jabrugger/laravel-firebird" }
+>     ]
+> }
+> ```
+
+> **Migrar desde `benson/laravel-firebird` o `harrygulliford/laravel-firebird`:** `composer remove` del paquete anterior y `composer require dasu/laravel-firebird`. No hay que tocar el código ni la configuración de la conexión.
 
 Configurá la conexión en `config/database.php`:
 
@@ -97,16 +105,24 @@ A predictable Firebird integration for Laravel: Query Builder, Eloquent, paginat
 
 ### Installation
 
-The package is **not published on Packagist**: declare the GitHub repository in the application's `composer.json` and pin the version:
-
-```json
-{
-    "require": { "benson/laravel-firebird": "4.0.2" },
-    "repositories": [
-        { "type": "vcs", "url": "https://github.com/bensonsbc/laravel-firebird" }
-    ]
-}
+```bash
+composer require dasu/laravel-firebird
 ```
+
+The package is published as **`dasu/laravel-firebird`** (the code is Benson's fork; see the credits above). The PHP namespace is unchanged, `Benson\LaravelFirebird`, and the service provider registers itself.
+
+> **If the package does not show up on Packagist yet**, declare the repository in the application's `composer.json` and pin the version:
+>
+> ```json
+> {
+>     "require": { "dasu/laravel-firebird": "4.0.3" },
+>     "repositories": [
+>         { "type": "vcs", "url": "https://github.com/jabrugger/laravel-firebird" }
+>     ]
+> }
+> ```
+
+> **Migrating from `benson/laravel-firebird` or `harrygulliford/laravel-firebird`:** `composer remove` the old package and `composer require dasu/laravel-firebird`. No code or connection configuration changes are needed.
 
 Configure the connection in `config/database.php`:
 
