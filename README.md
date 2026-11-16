@@ -87,7 +87,7 @@ Esta copia no modifica el código del driver por su cuenta: lo que se corrige o 
 | [#5](https://github.com/bensonsbc/laravel-firebird/pull/5) `fix/truncate-shared-generators` | `truncate()` ya no pone en cero un generador compartido con otras tablas, ni `dropAllTables()` intenta borrarlo. |
 | [#6](https://github.com/bensonsbc/laravel-firebird/pull/6) `feat/function-identifiers-option` | Opción `function_identifiers` para entrecomillar siempre los identificadores. |
 
-La rama `4.x` de este repositorio reúne esas cuatro ramas sobre la `4.x` de Benson.
+La rama `main` de este repositorio (la única que se usa como punto de partida) reúne esas cuatro ramas sobre la `4.x` de Benson, más PHP 8.5 en la matriz de CI ([#7](https://github.com/bensonsbc/laravel-firebird/pull/7), también propuesto a Benson, rama `ci/php-8.5`). Las ramas de los PR se conservan solo mientras el PR siga abierto.
 
 ---
 
@@ -162,7 +162,7 @@ This copy does not change the driver code on its own: whatever is fixed or added
 | [#5](https://github.com/bensonsbc/laravel-firebird/pull/5) `fix/truncate-shared-generators` | `truncate()` no longer zeroes a generator shared with other tables, and `dropAllTables()` no longer tries to drop it. |
 | [#6](https://github.com/bensonsbc/laravel-firebird/pull/6) `feat/function-identifiers-option` | `function_identifiers` option to always quote identifiers. |
 
-This repository's `4.x` branch gathers those four branches on top of Benson's `4.x`.
+This repository's `main` branch (the only one used as a starting point) gathers those four branches on top of Benson's `4.x`, plus PHP 8.5 in the CI matrix ([#7](https://github.com/bensonsbc/laravel-firebird/pull/7), also proposed to Benson, branch `ci/php-8.5`). The PR branches are kept only while their PR is open.
 
 ---
 
