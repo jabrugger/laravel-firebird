@@ -23,14 +23,28 @@ Integración previsible de Firebird con Laravel: Query Builder, Eloquent, pagina
 ### Instalación
 
 ```bash
-composer require dasu/laravel-firebird
+composer require "dasu/laravel-firebird:~4.0.4"
 ```
 
 El paquete se publica en [Packagist](https://packagist.org/packages/dasu/laravel-firebird) con el nombre **`dasu/laravel-firebird`**, con la base de Benson y las correcciones mantenidas en este fork. El espacio de nombres PHP no cambia: `Benson\LaravelFirebird`, y el proveedor de servicios se registra solo.
 
 La versión **v4.0.4** corrige los callbacks de commit manual, los parámetros de `exists()` y las expresiones SQL de `upsert()`. Los cambios y su validación están en el [CHANGELOG](CHANGELOG.md).
 
-> **Migrar desde `benson/laravel-firebird` o `harrygulliford/laravel-firebird`:** `composer remove` del paquete anterior y `composer require dasu/laravel-firebird`. No hay que tocar el código ni la configuración de la conexión.
+> **Migrar desde `benson/laravel-firebird` o `harrygulliford/laravel-firebird`:** `composer remove` del paquete anterior y `composer require "dasu/laravel-firebird:~4.0.4"`. No hay que tocar el código ni la configuración de la conexión.
+
+### Actualizaciones recomendadas
+
+Recomendamos **`~4.0.4`**, equivalente a `>=4.0.4 <4.1.0`: admite nuevas correcciones de la línea `4.0.x` y deja el salto a `4.1` para una actualización deliberada. Si una aplicación tiene fijado `4.0.3` o `4.0.4` exactamente, el comando de instalación anterior cambia su dependencia a este rango.
+
+Para incorporar las nuevas versiones permitidas:
+
+```bash
+composer update dasu/laravel-firebird
+```
+
+Publicar una versión en Packagist no modifica las aplicaciones instaladas. `composer update` selecciona la versión permitida más reciente compatible con las demás dependencias y actualiza `composer.lock`; `composer install` respeta ese lock. Después de comprobar la aplicación, guardá `composer.json` y `composer.lock` en Git para desplegar la misma versión en todos los entornos.
+
+Las entregas `4.0.x` deben conservar la compatibilidad de uso. Se revisa el changelog antes de adoptar `4.1`; según versionado semántico, un cambio incompatible corresponde a una versión mayor, como `5.0`.
 
 Configurá la conexión en `config/database.php`:
 
@@ -100,14 +114,28 @@ A predictable Firebird integration for Laravel: Query Builder, Eloquent, paginat
 ### Installation
 
 ```bash
-composer require dasu/laravel-firebird
+composer require "dasu/laravel-firebird:~4.0.4"
 ```
 
 The package is published on [Packagist](https://packagist.org/packages/dasu/laravel-firebird) as **`dasu/laravel-firebird`**, combining Benson's foundation with fixes maintained in this fork. The PHP namespace is unchanged, `Benson\LaravelFirebird`, and the service provider registers itself.
 
 Version **v4.0.4** fixes manual-commit callbacks, `exists()` bindings, and SQL expressions in `upsert()`. See the [CHANGELOG](CHANGELOG.md) for changes and validation.
 
-> **Migrating from `benson/laravel-firebird` or `harrygulliford/laravel-firebird`:** `composer remove` the old package and `composer require dasu/laravel-firebird`. No code or connection configuration changes are needed.
+> **Migrating from `benson/laravel-firebird` or `harrygulliford/laravel-firebird`:** `composer remove` the old package and `composer require "dasu/laravel-firebird:~4.0.4"`. No code or connection configuration changes are needed.
+
+### Recommended updates
+
+Use **`~4.0.4`**, equivalent to `>=4.0.4 <4.1.0`: it accepts future fixes in the `4.0.x` line and leaves `4.1` for an explicit upgrade. For an application pinned to exactly `4.0.3` or `4.0.4`, the installation command above changes its requirement to this range.
+
+To adopt newly available versions within that range:
+
+```bash
+composer update dasu/laravel-firebird
+```
+
+Publishing a release on Packagist does not modify installed applications. `composer update` selects the latest allowed version compatible with other dependencies and updates `composer.lock`; `composer install` uses that lock. After checking the application, commit both `composer.json` and `composer.lock` so every environment deploys the same version.
+
+Releases in the `4.0.x` line must remain backward compatible. Review the changelog before adopting `4.1`; under semantic versioning, an incompatible change requires a major release such as `5.0`.
 
 Configure the connection in `config/database.php`:
 

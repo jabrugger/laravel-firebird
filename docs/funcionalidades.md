@@ -18,6 +18,13 @@ con commit manual, sincroniza los bindings de `exists()` con el SQL generado y
 admite expresiones SQL en los valores de origen de `upsert()`. Ver el
 [historial de cambios](../CHANGELOG.md) para las pruebas y el alcance de validación.
 
+Para recibir correcciones futuras de la línea `4.0.x`, se recomienda instalar con
+`composer require "dasu/laravel-firebird:~4.0.4"` y actualizar con
+`composer update dasu/laravel-firebird`. Este rango deja fuera `4.1` y versiones
+posteriores. La publicación en Packagist no modifica aplicaciones instaladas:
+`composer install` conserva la versión de `composer.lock`. Ver
+[actualizaciones recomendadas](../README.md#actualizaciones-recomendadas).
+
 ## Sumario
 
 - [Configuración de la conexión](#configuración-de-la-conexión)
