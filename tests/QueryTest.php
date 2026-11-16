@@ -87,10 +87,10 @@ class QueryTest extends TestCase
         $this->assertCount(3, (array) $result);
 
         // With the default natural column case, quoted aliases (dialect 3) come
-        // back exactly as written; dialect 1 aliases are unquoted, so Firebird
-        // returns them in uppercase.
+        // back exactly as written. The dialect 1 test connection forces lowercase
+        // columns (see TestCase), because dialect 1 cannot quote aliases.
         [$name, $city, $country] = (string) env('DB_DIALECT') === '1'
-            ? ['USER_NAME', 'USER_CITY', 'USER_COUNTRY']
+            ? ['user_name', 'user_city', 'user_country']
             : ['USER_NAME', 'user_city', 'User_Country'];
 
         $this->assertObjectHasProperty($name, $result);
