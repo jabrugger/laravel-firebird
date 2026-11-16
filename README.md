@@ -28,7 +28,7 @@ composer require "dasu/laravel-firebird:~4.0.4"
 
 El paquete se publica en [Packagist](https://packagist.org/packages/dasu/laravel-firebird) con el nombre **`dasu/laravel-firebird`**, con la base de Benson y las correcciones mantenidas en este fork. El espacio de nombres PHP no cambia: `Benson\LaravelFirebird`, y el proveedor de servicios se registra solo.
 
-La versión **v4.0.4** corrige los callbacks de commit manual, los parámetros de `exists()` y las expresiones SQL de `upsert()`. Los cambios y su validación están en el [CHANGELOG](CHANGELOG.md).
+La versión **v4.0.5** corrige `dropAllTables()` en bases con claves foráneas legacy y rechaza valores con `;` en la configuración de conexión; la **v4.0.4** corrigió los callbacks de commit manual, los parámetros de `exists()` y las expresiones SQL de `upsert()`. Los cambios y su validación están en el [CHANGELOG](CHANGELOG.md).
 
 > **Migrar desde `benson/laravel-firebird` o `harrygulliford/laravel-firebird`:** `composer remove` del paquete anterior y `composer require "dasu/laravel-firebird:~4.0.4"`. No hay que tocar el código ni la configuración de la conexión.
 
@@ -119,7 +119,7 @@ composer require "dasu/laravel-firebird:~4.0.4"
 
 The package is published on [Packagist](https://packagist.org/packages/dasu/laravel-firebird) as **`dasu/laravel-firebird`**, combining Benson's foundation with fixes maintained in this fork. The PHP namespace is unchanged, `Benson\LaravelFirebird`, and the service provider registers itself.
 
-Version **v4.0.4** fixes manual-commit callbacks, `exists()` bindings, and SQL expressions in `upsert()`. See the [CHANGELOG](CHANGELOG.md) for changes and validation.
+Version **v4.0.5** fixes `dropAllTables()` on databases with legacy foreign keys and rejects `;` in connection settings; **v4.0.4** fixed manual-commit callbacks, `exists()` bindings, and SQL expressions in `upsert()`. See the [CHANGELOG](CHANGELOG.md) for changes and validation.
 
 > **Migrating from `benson/laravel-firebird` or `harrygulliford/laravel-firebird`:** `composer remove` the old package and `composer require "dasu/laravel-firebird:~4.0.4"`. No code or connection configuration changes are needed.
 

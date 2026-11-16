@@ -1,5 +1,18 @@
 # Historial de cambios / Changelog
 
+## v4.0.5 — 2026-11-16
+
+### Correcciones / Fixes
+
+- `dropAllTables()` borra las claves foráneas por su nombre real en el catálogo. Antes generaba `DROP CONSTRAINT "nombre_en_minúsculas"` y Firebird lo rechazaba (-607) con restricciones creadas sin comillas (guardadas en mayúsculas) o con mayúsculas y minúsculas mezcladas. / `dropAllTables()` drops foreign keys by their real catalog name. It used to generate `DROP CONSTRAINT "lowercase_name"`, which Firebird rejected (-607) for constraints created without quotes (stored uppercase) or with mixed case. [Upstream PR #12](https://github.com/bensonsbc/laravel-firebird/pull/12).
+- La conexión rechaza con `InvalidArgumentException` los valores de `database`, `host`, `port`, `charset`, `role` y `dialect` que contengan `;` o caracteres de control, porque el DSN no admite escape y un `;` agregaba parámetros en silencio. / The connector rejects `database`, `host`, `port`, `charset`, `role` and `dialect` values containing `;` or control characters with an `InvalidArgumentException`: the DSN has no escaping, so a `;` silently added parameters. [Upstream PR #8](https://github.com/bensonsbc/laravel-firebird/pull/8).
+
+### Pruebas / Validation
+
+- Cuatro pruebas nuevas: dos del error en `commit()`, una del DSN y una de `dropAllTables()` con claves foráneas legacy. / Four new tests: two for a failing `commit()`, one for the DSN and one for `dropAllTables()` with legacy foreign keys.
+- PHP 8.5.0, Laravel 13.42.0, Firebird 5.0.3: dialecto 3, 261 pruebas y 701 aserciones aprobadas; dialecto 1, 261 pruebas, 683 aserciones y 6 omitidas, sin fallas. / Dialect 3: 261 passing tests and 701 assertions; dialect 1: 261 tests, 683 assertions and 6 skipped, with no failures.
+- La CI del repositorio cubre PHP 8.3 a 8.5, Firebird 3, 4 y 5, y Laravel 12 y 13 (dialecto 3). / CI covers PHP 8.3 to 8.5, Firebird 3, 4 and 5, and Laravel 12 and 13 (dialect 3).
+
 ## v4.0.4 — 2026-11-16
 
 ### Correcciones / Fixes

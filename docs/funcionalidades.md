@@ -13,9 +13,11 @@ al día a medida que se agregan recursos.
 > La visión general y la instalación están en el [README](../README.md). Este
 > documento detalla el uso de cada recurso.
 
-La versión **v4.0.4** corrige la ejecución de consultas dentro de `afterCommit()`
-con commit manual, sincroniza los bindings de `exists()` con el SQL generado y
-admite expresiones SQL en los valores de origen de `upsert()`. Ver el
+La versión **v4.0.5** corrige `dropAllTables()` en bases con claves foráneas legacy
+y rechaza valores con `;` en la configuración de conexión. La **v4.0.4** corrigió la
+ejecución de consultas dentro de `afterCommit()` con commit manual, sincronizó los
+bindings de `exists()` con el SQL generado y admitió expresiones SQL en los valores
+de origen de `upsert()`. Ver el
 [historial de cambios](../CHANGELOG.md) para las pruebas y el alcance de validación.
 
 Para recibir correcciones futuras de la línea `4.0.x`, se recomienda instalar con
