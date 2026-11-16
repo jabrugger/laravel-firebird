@@ -1,27 +1,34 @@
-# Documentação do driver `benson/laravel-firebird`
+# Documentación del driver `benson/laravel-firebird`
 
-Referência das funcionalidades do driver Firebird para Laravel. Mantida
-atualizada conforme novos recursos são adicionados.
+Referencia de las funcionalidades del driver de Firebird para Laravel. Se mantiene
+al día a medida que se agregan recursos.
 
-> Visão geral rápida e instalação estão no [README](../README.md). Este
-> documento detalha o uso de cada recurso.
+> **Créditos:** el driver es obra de [Alexandre Benson Smith](https://github.com/bensonsbc)
+> ([`bensonsbc/laravel-firebird`](https://github.com/bensonsbc/laravel-firebird)).
+> Este documento es la traducción al español de su documentación original (en
+> portugués), con ajustes menores marcados como *(actualizado)*.
+>
+> La visión general y la instalación están en el [README](../README.md). Este
+> documento detalla el uso de cada recurso.
 
-## Sumário
+## Sumario
 
-- [Configuração da conexão](#configuracao-da-conexao)
-- [Identificadores e dialeto](#identificadores-e-dialeto)
-- [Recursos por versão do servidor](#recursos-por-versao-do-servidor)
-- [Paginação](#paginacao)
-- [Datas: cast `date` sem hora](#datas-cast-date-sem-hora)
-- [Nomenclatura de constraints e índices](#nomenclatura-de-constraints-e-indices)
-- [Índice único sem constraint](#indice-unico-sem-constraint)
-- [Comportamentos específicos do Firebird](#comportamentos-especificos-do-firebird)
-- [Limitações conhecidas](#limitacoes-conhecidas)
-- [Testes](#testes)
+- [Configuración de la conexión](#configuración-de-la-conexión)
+- [Identificadores, caja y comillas](#identificadores-caja-y-comillas)
+- [Recursos según la versión del servidor](#recursos-según-la-versión-del-servidor)
+- [Paginación](#paginación)
+- [Fechas: cast `date` sin hora](#fechas-cast-date-sin-hora)
+- [Nombres de constraints e índices](#nombres-de-constraints-e-índices)
+- [Índice único sin constraint](#índice-único-sin-constraint)
+- [Columnas calculadas](#columnas-calculadas)
+- [Tablas temporales](#tablas-temporales)
+- [Comportamientos específicos de Firebird](#comportamientos-específicos-de-firebird)
+- [Limitaciones conocidas](#limitaciones-conocidas)
+- [Pruebas](#pruebas)
 
 ---
 
-## Configuração da conexão
+## Configuración de la conexión
 
 ```php
 'firebird' => [
@@ -39,146 +46,175 @@ atualizada conforme novos recursos são adicionados.
 ],
 ```
 
-| Opção | Padrão | Descrição |
+| Opción | Valor por defecto | Descripción |
 | --- | --- | --- |
-| `quote_identifiers` | `true` | Envolve identificadores em aspas duplas. Desative para bases legadas com objetos sem aspas. |
-| `uppercase_identifiers` | `false` | Converte identificadores não quotados para maiúsculas (estilo legado). |
+| `quote_identifiers` | `true` | Envuelve los identificadores entre comillas dobles. Desactivar para bases legadas con objetos sin comillas. |
+| `uppercase_identifiers` | `false` | Convierte a mayúsculas los identificadores sin comillas (estilo legado). |
 | `pagination_mode` | `first_skip` | `first_skip` usa `SELECT FIRST n SKIP m`; `offset_fetch` usa `OFFSET ... FETCH`. |
-| `dialect` | — | Defina `1` para bancos em dialeto 1 (ajusta tipos, datas e desliga identity). |
-| `role` | — | Role SQL enviada na conexão. |
-| `server_version` | autodetectada | Fixa a versão do servidor (ex.: `'3.0.10'`) e evita a detecção via conexão. |
-| `index_names` | — | Templates para a nomenclatura padrão de PK/FK/unique/index. Veja a seção própria. |
+| `dialect` | — | Poner `1` para bases en dialecto 1 (ajusta tipos y fechas, y desactiva identity). |
+| `role` | — | Rol SQL que se envía al conectar. |
+| `column_case` | `natural` | *(actualizado)* Caja de los nombres de columna en los resultados: `natural` (como los devuelve Firebird), `lower` o `upper`. Ver [Caja en el resultado](#caja-en-el-resultado-pdoattr_case). |
+| `function_identifiers` | `true` | *(propuesta pendiente de aceptación)* Los identificadores con forma de función (`upper(nombre)`) pasan sin comillas. Poner `false` para entrecomillar siempre. |
+| `server_version` | autodetectada | Fija la versión del servidor (p. ej. `'3.0.10'`) y evita detectarla por la conexión. |
+| `index_names` | — | Plantillas para los nombres por defecto de PK/FK/unique/index. Ver la sección propia. |
 
 ---
 
-## Identificadores, case e quoting
+## Identificadores, caja y comillas
 
-Esta é a área mais específica (e mais sensível) do Firebird. Entender como o
-servidor trata identificadores evita a maior parte dos problemas de "tabela/
-coluna não existe".
+Esta es el área más específica (y más delicada) de Firebird. Entender cómo trata
+el servidor los identificadores evita la mayoría de los problemas de "la tabla o
+columna no existe".
 
-### Como o Firebird trata identificadores
+### Cómo trata Firebird los identificadores
 
-- **Sem aspas** (`select * from CLIENTE`): case-insensitive; o servidor
-  **dobra para MAIÚSCULAS** e é assim que o nome fica no catálogo
-  (`rdb$relation_name = 'CLIENTE'`).
-- **Com aspas** (`select * from "Cliente"`): case-sensitive; o nome é
-  guardado **exatamente** como escrito. `"Cliente"`, `"cliente"` e `CLIENTE`
-  são três objetos diferentes.
+- **Sin comillas** (`select * from CLIENTE`): no distingue mayúsculas de
+  minúsculas; el servidor **lo pasa a MAYÚSCULAS** y así queda el nombre en el
+  catálogo (`rdb$relation_name = 'CLIENTE'`).
+- **Con comillas** (`select * from "Cliente"`): distingue mayúsculas; el nombre se
+  guarda **exactamente** como se escribió. `"Cliente"`, `"cliente"` y `CLIENTE`
+  son tres objetos distintos.
 
-Consequência prática: uma tabela criada por uma ferramenta legada **sem aspas**
-vira `AUDITORIA` no catálogo; uma tabela criada pelo Laravel (que por padrão
-quota) vira `auditoria`. Os dois convivem no mesmo banco.
+Consecuencia práctica: una tabla creada por una herramienta legada **sin
+comillas** queda como `AUDITORIA` en el catálogo; una tabla creada por Laravel
+(que por defecto usa comillas) queda como `auditoria`. Las dos conviven en la
+misma base.
 
-### Os dois parâmetros do driver
+### Los dos parámetros del driver
 
-| Config | Avaliação interna | Efeito |
+| Configuración | Evaluación interna | Efecto |
 | --- | --- | --- |
-| `quote_identifiers` | verdadeiro a menos que seja exatamente `false` (padrão: quota) | Quando ligado, envolve identificadores em aspas duplas, preservando o case. Quando desligado, emite identificadores **sem** aspas. |
-| `uppercase_identifiers` | verdadeiro só quando exatamente `true` (padrão: `false`) | Quando ligado, converte identificadores não quotados para MAIÚSCULAS antes de emitir. |
+| `quote_identifiers` | verdadero salvo que sea exactamente `false` (por defecto: con comillas) | Activado, envuelve los identificadores entre comillas dobles y preserva la caja. Desactivado, emite los identificadores **sin** comillas. |
+| `uppercase_identifiers` | verdadero solo cuando es exactamente `true` (por defecto: `false`) | Activado, convierte a MAYÚSCULAS los identificadores sin comillas antes de emitirlos. |
 
-### Matriz de combinações
+### Matriz de combinaciones
 
-Para `DB::table('cliente')->select('nome')`:
+Para `DB::table('cliente')->select('nombre')`:
 
-| `quote_identifiers` | `uppercase_identifiers` | SQL gerado | Use quando |
+| `quote_identifiers` | `uppercase_identifiers` | SQL generado | Usar cuando |
 | --- | --- | --- | --- |
-| `true` (padrão) | `false` (padrão) | `select "nome" from "cliente"` | Banco novo, criado pelo próprio Laravel (nomes minúsculos). |
-| `false` | `true` | `select NOME from CLIENTE` | Banco legado, criado sem aspas (nomes maiúsculos). |
-| `false` | `false` | `select nome from cliente` | Raro: o servidor dobra para `NOME`/`CLIENTE` na resolução. |
-| `true` | `true` | `select "NOME" from "CLIENTE"` | Legado que você quer referenciar quotando em maiúsculas. |
+| `true` (defecto) | `false` (defecto) | `select "nombre" from "cliente"` | Base nueva, creada por el propio Laravel (nombres en minúsculas). |
+| `false` | `true` | `select NOMBRE from CLIENTE` | Base legada, creada sin comillas (nombres en mayúsculas). |
+| `false` | `false` | `select nombre from cliente` | Raro: el servidor lo pasa a `NOMBRE`/`CLIENTE` al resolver. |
+| `true` | `true` | `select "NOMBRE" from "CLIENTE"` | Legado que se quiere referenciar entre comillas y en mayúsculas. |
 
-> Regra prática: **banco novo** → mantenha o padrão (`quote_identifiers = true`,
-> `uppercase_identifiers = false`). **Banco legado uppercase** →
-> `quote_identifiers = false` + `uppercase_identifiers = true`.
+> Regla práctica: **base nueva** → dejar los valores por defecto
+> (`quote_identifiers = true`, `uppercase_identifiers = false`). **Base legada en
+> mayúsculas** → `quote_identifiers = false` + `uppercase_identifiers = true`.
 
-### Identificadores reservados sempre quotados
+### Identificadores reservados siempre entrecomillados
 
-Mesmo com `quote_identifiers = false`, alguns nomes são **sempre** quotados
-porque colidem com palavras reservadas do Firebird:
+Aun con `quote_identifiers = false`, algunos nombres se entrecomillan **siempre**
+porque chocan con palabras reservadas de Firebird:
 
 ```
 KEY, TIMESTAMP, VALUE
 ```
 
-Então `select key, value from cache` com modo legado gera
-`select "KEY", "VALUE" from CACHE` — as colunas reservadas ficam quotadas (e
-uppercased), o resto segue o modo configurado.
+Así, `select key, value from cache` en modo legado genera
+`select "KEY", "VALUE" from CACHE`: las columnas reservadas quedan entre comillas
+(y en mayúsculas); el resto sigue el modo configurado.
 
-### Aliases
+### Alias
 
-Fora do dialeto 1, aliases de coluna são **sempre** quotados, para que o nome
-da coluna no resultado preserve o case (`select X as "userName"`). No dialeto 1
-o alias segue a normalização de identificador (uppercase quando configurado).
+Fuera del dialecto 1, los alias de columna se entrecomillan **siempre**, para que
+el nombre de la columna en el resultado preserve la caja (`select X as "userName"`).
+En el dialecto 1 el alias sigue la normalización de identificadores (mayúsculas
+cuando está configurado).
 
-### Case no resultado (`PDO::ATTR_CASE`)
+### Caja en el resultado (`PDO::ATTR_CASE`)
 
-A conexão usa `PDO::CASE_LOWER`: **todos os nomes de coluna do resultset voltam
-em minúsculas**, inclusive aliases quotados. Ou seja, `select X as "userName"`
-retorna a chave `username` no array/objeto. Os **valores** não são afetados —
-só os nomes das colunas.
+*(actualizado)* Desde la v4.0.1 la caja de los nombres de columna del resultado la
+controla la opción **`column_case`**:
 
-### Case na introspecção de schema
+- `natural` (**por defecto**): se devuelve como la entrega Firebird. Los
+  identificadores sin comillas (por ejemplo `select nombre from cliente` en modo
+  legado) vuelven en **MAYÚSCULAS** y los alias entrecomillados vuelven **tal como
+  se escribieron** (`select X as "userName"` → clave `userName`).
+- `lower`: todos los nombres de columna vuelven en minúsculas (el comportamiento
+  fijo de las versiones anteriores).
+- `upper`: todos vuelven en mayúsculas.
 
-Métodos como `Schema::getTables()`, `getColumns()`, `getIndexes()` e
-`getForeignKeys()` retornam os nomes **em minúsculas** (normalização do
-processor), para casar com as expectativas do Laravel. Internamente, as
-consultas de metadados normalizam o nome procurado conforme
-`uppercase_identifiers` (maiúsculas quando ligado), de modo que
-`Schema::hasTable('cliente')` encontra `CLIENTE` num banco legado.
+Los **valores** no se ven afectados, solo los nombres de las columnas. Una
+aplicación que lea las propiedades de los resultados debe usar la caja que
+corresponda a esta opción.
 
-> Atenção em bancos **mistos** (tabelas legadas maiúsculas + tabelas Laravel
-> minúsculas): operações que pegam o nome minúsculo da introspecção e
-> re-emitem um identificador quotado podem não casar com o nome real. O driver
-> já trata isso em `dropAllTables`/`dropAllViews` (usando o nome real do
-> catálogo); se encontrar outro ponto sensível, reporte.
+> En el dialecto 1 los alias no se pueden entrecomillar, por lo que con `natural`
+> los alias vuelven en mayúsculas. Si el código espera minúsculas, usar
+> `'column_case' => 'lower'`.
 
-### Case na nomenclatura de constraints/índices
+### Caja en la introspección del esquema
 
-O nome gerado pelos templates de [`index_names`](#nomenclatura-de-constraints-e-indices)
-é literal — o case que você escreve no template é o ponto de partida. Em
-seguida ele passa pelo mesmo wrapping acima:
+Métodos como `Schema::getTables()`, `getColumns()`, `getIndexes()` y
+`getForeignKeys()` devuelven los nombres **en minúsculas** (normalización del
+*processor*), para coincidir con lo que espera Laravel. Internamente, las
+consultas de metadatos normalizan el nombre buscado según `uppercase_identifiers`
+(mayúsculas cuando está activado), de modo que `Schema::hasTable('cliente')`
+encuentra `CLIENTE` en una base legada.
 
-- Com o padrão (`quote_identifiers = true`, `uppercase_identifiers = false`):
-  `'PK_{table}'` numa tabela `clientes` vira a constraint `"PK_clientes"`
-  (case preservado).
-- Com `uppercase_identifiers = true`: o mesmo template vira `"PK_CLIENTES"`
-  (forçado a maiúsculas).
-- Com `quote_identifiers = false`: sai sem aspas, e o servidor dobra para
-  maiúsculas no catálogo.
+> Atención en bases **mixtas** (tablas legadas en mayúsculas + tablas de Laravel
+> en minúsculas): las operaciones que toman el nombre en minúsculas de la
+> introspección y vuelven a emitir un identificador entre comillas pueden no
+> coincidir con el nombre real. El driver ya lo resuelve en
+> `dropAllTables`/`dropAllViews` (usando el nombre real del catálogo); si se
+> encuentra otro punto sensible, reportarlo.
 
-Escolha o case do template de acordo com a convenção do projeto **e** com o
-modo de identificadores da conexão.
+### Caja en los nombres de constraints/índices
 
-### Dialeto 1
+El nombre generado por las plantillas de [`index_names`](#nombres-de-constraints-e-índices)
+es literal: la caja que se escribe en la plantilla es el punto de partida. Luego
+pasa por el mismo tratamiento de arriba:
 
-Com `'dialect' => '1'`, além dos ajustes de tipos e datas, o auto incremento
-por identity é desligado (volta ao caminho generator + trigger), e a
-normalização de aliases segue o modo de identificadores em vez de quotar
-sempre.
+- Con los valores por defecto (`quote_identifiers = true`,
+  `uppercase_identifiers = false`): `'PK_{table}'` en una tabla `clientes` queda
+  como la constraint `"PK_clientes"` (caja preservada).
+- Con `uppercase_identifiers = true`: la misma plantilla queda `"PK_CLIENTES"`
+  (forzada a mayúsculas).
+- Con `quote_identifiers = false`: sale sin comillas y el servidor lo pasa a
+  mayúsculas en el catálogo.
+
+Conviene elegir la caja de la plantilla de acuerdo con la convención del proyecto
+**y** con el modo de identificadores de la conexión.
+
+### Dialecto 1
+
+Con `'dialect' => '1'`, además de los ajustes de tipos y fechas, el autoincremento
+por identity se desactiva (vuelve al camino generador + trigger) y la
+normalización de alias sigue el modo de identificadores en lugar de entrecomillar
+siempre.
 
 ---
 
-## Recursos por versão do servidor
+## Recursos según la versión del servidor
 
-A versão é detectada automaticamente (ou fixada via `server_version`) e habilita recursos:
+La versión se detecta automáticamente (o se fija con `server_version`) y habilita
+recursos:
 
-- **Firebird 3+** — auto incremento via `GENERATED BY DEFAULT AS IDENTITY` (sem generator/trigger); `ALTER COLUMN SET/DROP NOT NULL` em `->change()`; `boolean()` gera `BOOLEAN` nativo (dialeto 3; `default(true)` vira `DEFAULT TRUE`); `auto_increment` correto na introspecção; limites de eager load (`->limit()` em relações) via `ROW_NUMBER()`. Em servidores 2.5 (e em dialeto 1) o driver usa o caminho legado: generator + trigger, nulabilidade pela tabela de sistema e `boolean()` como `CHAR(1)`.
-- **Firebird 4+** — identificadores de até 63 caracteres; `timestampTz()`, `timeTz()` e `dateTimeTz()` geram tipos `WITH TIME ZONE`; `joinLateral()` (lateral derived tables; em servidores mais antigos lança `RuntimeException`).
+- **Firebird 3+** — autoincremento con `GENERATED BY DEFAULT AS IDENTITY` (sin
+  generador/trigger); `ALTER COLUMN SET/DROP NOT NULL` en `->change()`;
+  `boolean()` genera `BOOLEAN` nativo (dialecto 3; `default(true)` pasa a
+  `DEFAULT TRUE`); `auto_increment` correcto en la introspección; límites de
+  *eager load* (`->limit()` en relaciones) con `ROW_NUMBER()`. En servidores 2.5
+  (y en dialecto 1) el driver usa el camino legado: generador + trigger,
+  nulabilidad por la tabla de sistema y `boolean()` como `CHAR(1)`.
+- **Firebird 4+** — identificadores de hasta 63 caracteres; `timestampTz()`,
+  `timeTz()` y `dateTimeTz()` generan tipos `WITH TIME ZONE`; `joinLateral()`
+  (tablas derivadas laterales; en servidores más viejos lanza `RuntimeException`).
 
-Nomes de objetos acima do limite de identificadores do servidor recebem sufixo de hash automático para evitar colisão silenciosa.
+Los nombres de objetos por encima del límite de identificadores del servidor
+reciben un sufijo de hash automático para evitar colisiones silenciosas.
 
 ---
 
-## Paginação
+## Paginación
 
-Padrão (`first_skip`):
+Por defecto (`first_skip`):
 
 ```sql
 select first 10 skip 20 * from CLIENTE
 ```
 
-Com `'pagination_mode' => 'offset_fetch'`:
+Con `'pagination_mode' => 'offset_fetch'`:
 
 ```sql
 select * from CLIENTE offset 20 rows fetch first 10 rows only
@@ -186,11 +222,15 @@ select * from CLIENTE offset 20 rows fetch first 10 rows only
 
 ---
 
-## Datas: cast `date` sem hora
+## Fechas: cast `date` sin hora
 
-No dialeto 3 o tipo `DATE` do Firebird **não tem componente de hora**. O Laravel formata todo valor temporal com um único formato (`Y-m-d H:i:s`), o que faz o Firebird recusar a gravação de uma coluna `DATE` com `-413 conversion error from string`.
+En el dialecto 3 el tipo `DATE` de Firebird **no tiene componente de hora**.
+Laravel formatea todo valor temporal con un único formato (`Y-m-d H:i:s`), lo que
+hace que Firebird rechace la grabación en una columna `DATE` con
+`-413 conversion error from string`.
 
-A solução fica na camada do model, usando o cast que você já declara. Há duas formas:
+La solución está en la capa del modelo, usando el cast que ya se declara. Hay dos
+formas:
 
 **1. Trait `SerializesFirebirdDates`:**
 
@@ -203,38 +243,42 @@ class Pedido extends Model
     use SerializesFirebirdDates;
 
     protected $casts = [
-        'data_emissao' => 'date',      // gravado como 2026-06-18
-        'criado_em'    => 'datetime',  // gravado como 2026-06-18 13:45:00
+        'fecha_emision' => 'date',      // se graba como 2026-06-18
+        'creado_en'     => 'datetime',  // se graba como 2026-06-18 13:45:00
     ];
 }
 ```
 
-**2. Model base `Benson\LaravelFirebird\Eloquent\Model`** (já inclui o trait):
+**2. Modelo base `Benson\LaravelFirebird\Eloquent\Model`** (ya incluye el trait):
 
 ```php
 use Benson\LaravelFirebird\Eloquent\Model;
 
 class Pedido extends Model
 {
-    protected $casts = ['data_emissao' => 'date'];
+    protected $casts = ['fecha_emision' => 'date'];
 }
 ```
 
-Comportamento:
+Comportamiento:
 
-| Cast | Você atribui | Vai para o banco |
+| Cast | Se asigna | Va a la base |
 | --- | --- | --- |
 | `date` | `'2026-06-18'` | `2026-06-18` |
-| `date` | `Carbon` com hora | `2026-06-18` (hora descartada) |
-| `datetime` | `Carbon` com hora | `2026-06-18 13:45:00` |
+| `date` | `Carbon` con hora | `2026-06-18` (se descarta la hora) |
+| `datetime` | `Carbon` con hora | `2026-06-18 13:45:00` |
 
-A leitura continua devolvendo instâncias `Carbon`. Vale para acesso via Eloquent; um `DB::table()->insert(['data' => $carbon])` cru ainda usa o formato global — nesse caso passe a data como string `Y-m-d`.
+La lectura sigue devolviendo instancias de `Carbon`. Vale para el acceso por
+Eloquent; un `DB::table()->insert(['fecha' => $carbon])` crudo sigue usando el
+formato global: en ese caso hay que pasar la fecha como texto `Y-m-d`.
 
 ---
 
-## Nomenclatura de constraints e índices
+## Nombres de constraints e índices
 
-Por padrão o Laravel nomeia constraints/índices como `{tabela}_{colunas}_{tipo}`. Para seguir a convenção do seu projeto, configure `index_names` na conexão, com os placeholders `{table}` e `{columns}`:
+Por defecto Laravel nombra constraints e índices como `{tabla}_{columnas}_{tipo}`.
+Para seguir la convención del proyecto, configurar `index_names` en la conexión,
+con los marcadores `{table}` y `{columns}`:
 
 ```php
 'firebird' => [
@@ -249,7 +293,7 @@ Por padrão o Laravel nomeia constraints/índices como `{tabela}_{colunas}_{tipo
 ],
 ```
 
-A partir daí, constraints criadas **sem nome explícito** seguem o padrão:
+A partir de ahí, las constraints creadas **sin nombre explícito** siguen el patrón:
 
 ```php
 Schema::create('clientes', function (Blueprint $table) {
@@ -259,73 +303,81 @@ Schema::create('clientes', function (Blueprint $table) {
 
     $table->primary('id');                                      // PK_clientes
     $table->unique('email');                                    // UQ_clientes_email
-    $table->unique(['cpf', 'nome']);                            // UQ_clientes_cpf_nome
-    $table->index('nome');                                      // IX_clientes_nome
+    $table->unique(['cuit', 'nombre']);                         // UQ_clientes_cuit_nombre
+    $table->index('nombre');                                    // IX_clientes_nombre
     $table->foreign('user_id')->references('id')->on('users');  // FK_clientes_user_id
 });
 ```
 
-Detalhes:
+Detalles:
 
-- **Cada tipo é opcional** — os não definidos mantêm o padrão do Laravel.
-- **Nome explícito** (2º argumento) sempre tem prioridade: `$table->unique('email', 'UQ_LOGIN')`.
-- **Drop por colunas** reusa o mesmo gerador de nome, então `$table->dropUnique(['email'])` casa o nome certo.
-- **`unique()` cria constraint + índice único** de mesmo nome (no Firebird uma UNIQUE constraint gera um índice único por baixo).
-- **Foreign keys criam um índice automaticamente.** No Firebird, ao criar uma FK o servidor cria um índice nas colunas da FK, com o **mesmo nome** da constraint. Ou seja, com `'foreign' => 'FK_{table}_{columns}'`, existe uma constraint `FK_...` e um índice `FK_...`. Não é preciso (nem se deve) criar um `index()` adicional para a coluna da FK — isso geraria índice duplicado.
-- **PK de colunas auto-increment (`id()`, `increments()`) também segue o template `primary`.** A chave primária dessas colunas é emitida inline na definição da coluna (`... AS IDENTITY PRIMARY KEY`), fora do `compilePrimary()`. O driver aplica o template `primary` ali como uma constraint nomeada inline — ex.: `id BIGINT GENERATED BY DEFAULT AS IDENTITY CONSTRAINT PK_usuario PRIMARY KEY`. Sem template, a PK fica sem nome (o servidor gera um `INTEG_nnn`).
-- **Limite de tamanho**: nomes longos recebem sufixo de hash respeitando o limite do servidor (31/63 caracteres).
+- **Cada tipo es opcional**: los que no se definen mantienen el valor por defecto de Laravel.
+- **El nombre explícito** (2.º argumento) siempre tiene prioridad: `$table->unique('email', 'UQ_LOGIN')`.
+- **El borrado por columnas** reutiliza el mismo generador de nombres, así que `$table->dropUnique(['email'])` encuentra el nombre correcto.
+- **`unique()` crea constraint + índice único** con el mismo nombre (en Firebird una constraint UNIQUE genera por debajo un índice único).
+- **Las foreign keys crean un índice automáticamente.** En Firebird, al crear una FK el servidor crea un índice sobre sus columnas, con el **mismo nombre** que la constraint. O sea, con `'foreign' => 'FK_{table}_{columns}'` existe una constraint `FK_...` y un índice `FK_...`. No hace falta (ni conviene) crear un `index()` adicional para la columna de la FK: generaría un índice duplicado.
+- **La PK de las columnas autoincrementales (`id()`, `increments()`) también sigue la plantilla `primary`.** La clave primaria de esas columnas se emite en línea en la definición de la columna (`... AS IDENTITY PRIMARY KEY`), fuera de `compilePrimary()`. El driver aplica ahí la plantilla `primary` como una constraint nombrada en línea; por ejemplo: `id BIGINT GENERATED BY DEFAULT AS IDENTITY CONSTRAINT PK_usuario PRIMARY KEY`. Sin plantilla, la PK queda sin nombre (el servidor genera un `INTEG_nnn`).
+- **Límite de tamaño**: los nombres largos reciben un sufijo de hash respetando el límite del servidor (31/63 caracteres).
 
 ---
 
-## Índice único sem constraint
+## Índice único sin constraint
 
-`unique()` cria uma UNIQUE **constraint**. Quando você quer um índice único **puro** (`CREATE UNIQUE INDEX`, sem constraint — não referenciável por FK, dropado com `DROP INDEX`), use `uniqueIndex()`:
+`unique()` crea una **constraint** UNIQUE. Para un índice único **puro**
+(`CREATE UNIQUE INDEX`, sin constraint: no referenciable por una FK y que se borra
+con `DROP INDEX`) se usa `uniqueIndex()`:
 
 ```php
 Schema::table('clientes', function (Blueprint $table) {
-    $table->uniqueIndex('email');                 // UX_clientes_email (template uniqueIndex)
-    $table->uniqueIndex(['cpf', 'nome']);         // UX_clientes_cpf_nome
-    $table->uniqueIndex('cnpj', 'UX_ESPECIAL');   // nome explícito
+    $table->uniqueIndex('email');                 // UX_clientes_email (plantilla uniqueIndex)
+    $table->uniqueIndex(['cuit', 'nombre']);      // UX_clientes_cuit_nombre
+    $table->uniqueIndex('cuit', 'UX_ESPECIAL');   // nombre explícito
 });
 ```
 
-Compila para `CREATE UNIQUE INDEX`. O nome automático segue o template `uniqueIndex` do `index_names` (com fallback para o padrão do Laravel se não definido).
+Se compila a `CREATE UNIQUE INDEX`. El nombre automático sigue la plantilla
+`uniqueIndex` de `index_names` (con el valor por defecto de Laravel si no está definida).
 
-Para remover:
+Para quitarlo:
 
 ```php
-$table->dropUniqueIndex('UX_clientes_email'); // por nome
-$table->dropUniqueIndex(['email']);           // por colunas (reconstrói o nome pelo template)
+$table->dropUniqueIndex('UX_clientes_email'); // por nombre
+$table->dropUniqueIndex(['email']);           // por columnas (reconstruye el nombre con la plantilla)
 ```
 
-Diferença entre os dois:
+Diferencia entre los dos:
 
 | | `unique()` | `uniqueIndex()` |
 | --- | --- | --- |
-| Objeto criado | UNIQUE constraint (+ índice) | apenas índice único |
-| Aparece em `rdb$relation_constraints` | sim | não |
-| Pode ser alvo de FK | sim | não |
-| Removido com | `dropUnique()` | `dropUniqueIndex()` |
+| Objeto creado | constraint UNIQUE (+ índice) | solo índice único |
+| Aparece en `rdb$relation_constraints` | sí | no |
+| Puede ser destino de una FK | sí | no |
+| Se quita con | `dropUnique()` | `dropUniqueIndex()` |
 
 ---
 
-## Colunas computadas
+## Columnas calculadas
 
-Colunas `virtualAs()`/`storedAs()` (e o tipo `computed`) compilam para `COMPUTED BY` do Firebird:
+Las columnas `virtualAs()`/`storedAs()` (y el tipo `computed`) se compilan a
+`COMPUTED BY` de Firebird:
 
 ```php
-Schema::create('itens', function (Blueprint $table) {
-    $table->integer('qtd');
-    $table->decimal('preco', 10, 2);
-    $table->decimal('total', 12, 2)->virtualAs('"qtd" * "preco"');
+Schema::create('items', function (Blueprint $table) {
+    $table->integer('cantidad');
+    $table->decimal('precio', 10, 2);
+    $table->decimal('total', 12, 2)->virtualAs('"cantidad" * "precio"');
 });
 ```
 
-A expressão é SQL cru — referencie as colunas com o case/aspas que a conexão usa (no dialeto 1, sem aspas e em maiúsculas). No Firebird toda coluna computada é **virtual** (calculada na leitura); `storedAs()` é tratado como `virtualAs()`.
+La expresión es SQL crudo: hay que referenciar las columnas con la caja y las
+comillas que usa la conexión (en el dialecto 1, sin comillas y en mayúsculas). En
+Firebird toda columna calculada es **virtual** (se calcula al leer); `storedAs()`
+se trata como `virtualAs()`.
 
-## Tabelas temporárias
+## Tablas temporales
 
-`$table->temporary()` cria uma `GLOBAL TEMPORARY TABLE ... ON COMMIT PRESERVE ROWS` (escopo de conexão, semelhante a tabelas temporárias de sessão de outros bancos):
+`$table->temporary()` crea una `GLOBAL TEMPORARY TABLE ... ON COMMIT PRESERVE ROWS`
+(alcance de conexión, similar a las tablas temporales de sesión de otras bases):
 
 ```php
 Schema::create('calc_temp', function (Blueprint $table) {
@@ -335,53 +387,54 @@ Schema::create('calc_temp', function (Blueprint $table) {
 });
 ```
 
-> A definição da GTT é permanente no schema; só os dados são temporários. `getTables()`/`dropAllTables()` listam apenas tabelas persistentes (`relation_type = 0`), então GTTs não são removidas por `dropAllTables()`.
+> La definición de la GTT es permanente en el esquema; solo los datos son
+> temporales. `getTables()`/`dropAllTables()` listan solo las tablas persistentes
+> (`relation_type = 0`), por lo que `dropAllTables()` no elimina las GTT.
 
-## Comportamentos específicos do Firebird
+## Comportamientos específicos de Firebird
 
-- **`insertOrIgnore`** insere linha a linha em transação e ignora violações de qualquer constraint única. `insertOrIgnoreUsing` resolve os índices únicos da tabela e gera `NOT EXISTS` por índice.
-- **`firstOrCreate`/`createOrFirst`** funcionam em condição de corrida (violações de unique viram `UniqueConstraintViolationException`).
-- **`truncate()`** emula `TRUNCATE` com `DELETE FROM` e reinicia generators e colunas identity.
-- **`upsert()`** compila para `MERGE`. Os valores da fonte derivada recebem `CAST` tipado (o Firebird não infere tipos de parâmetros em derived tables); strings acima de 8191 caracteres (limite de `VARCHAR` em UTF8) usam `CAST(? AS BLOB SUB_TYPE TEXT)`.
-- **`->change()`** inspeciona a definição atual da coluna e omite `ALTER TYPE`/nulidade redundantes — uma migração que só altera o `default` não dispara `ALTER TYPE` (que o Firebird rejeita para várias conversões). Sem conexão inspecionável, todos os statements são emitidos (semântica padrão do Laravel de redefinição completa).
-- **Update/delete com joins** localizam as linhas alvo via `RDB$DB_KEY`.
-- **Listas `IN` com mais de 1499 itens** são divididas em múltiplos grupos `IN` automaticamente.
-- **`whereLike`** segue o padrão do banco: `LIKE` respeita a collation da coluna (não força `UPPER()`, que quebraria índices e ignoraria a collation escolhida). Para busca case/accent-insensitive, defina a coluna com collation CI/AI (ex.: `UNICODE_CI` / `UNICODE_CI_AI`).
-- **`dropAllTables`/`dropAllViews`** usam o nome real do catálogo (case preservado), funcionando tanto para tabelas minúsculas (criadas com aspas) quanto maiúsculas (legadas, criadas sem aspas).
-- **`->from(n)` / `->startingValue(n)`** em colunas auto-increment: em servidores com identity, `ALTER ... RESTART WITH` (com ajuste do off-by-one do Firebird 3, onde `RESTART WITH n` gera `n+1`); no caminho legado, `SET GENERATOR ... TO n-1`. O primeiro valor gerado é sempre `n`, em qualquer versão.
-- **`tinyText()`** vira `VARCHAR(255)` e **`year()`** vira `INTEGER`.
-- **`DB::escape($valor, binary: true)`** gera literal hexadecimal `x'...'`.
-- **`db:show` / `db:monitor`** informam conexões abertas via `MON$ATTACHMENTS`.
-- **Bind de inteiros em colunas `DECIMAL`/`NUMERIC` escaladas.** O `pdo_firebird` aplica escala errada quando um inteiro é vinculado com `PDO::PARAM_INT` (ex.: `40` vira `0.40` numa `DECIMAL(5,2)`). O driver sobrescreve `bindValues()` para vincular inteiros como string (`PARAM_STR`), que o Firebird converte com a escala correta. Vale para qualquer coluna; ints normais, `where` e booleanos continuam corretos.
-
-- **Transações e autocommit.** O `pdo_firebird` em autocommit grava cada comando na hora (um rollback não desfaria nada); por isso o driver desliga o autocommit ao abrir a transação e religa quando a transação de fora termina (commit ou rollback). No `DB::transaction(fn …)`, o autocommit volta **logo após o commit**, antes dos callbacks "depois do commit" (`DB::afterCommit`, jobs/eventos com `afterCommit`) — antes da v4.0.2 ele só voltava depois deles, e qualquer comando num callback falhava com `-901 invalid transaction handle (expecting explicit transaction start)`. Savepoints (transações aninhadas), rollback e a repetição em conflito (`DB::transaction($fn, $tentativas)`) seguem como antes — cobertos em `tests/TransactionTest.php`, conferindo por uma segunda conexão o que foi de fato gravado.
-
----
-
-## Limitações conhecidas
-
-- A conexão usa `PDO::ATTR_CASE_LOWER`: nomes de coluna do resultset voltam em minúsculas, inclusive aliases quotados.
-- `disableForeignKeyConstraints()`/`enableForeignKeyConstraints()` são no-ops (Firebird não tem toggle de FK por conexão). `dropAllTables()` derruba as FKs antes das tabelas.
-- Operações JSON (`whereJsonContains`, seletores `->`) não são suportadas; colunas `json()` viram `BLOB SUB_TYPE TEXT`.
-- `Schema::rename()` (renomear tabela) e `renameIndex()` não são suportados pelo Firebird — ambos lançam exceção (em vez do no-op silencioso do framework para métodos ausentes).
-- A opção `isolation_level` da conexão não é suportada (isolamento no Firebird é por transação; o pdo_firebird só expõe controle a partir do PHP 8.4).
-- `schema:dump` não é suportado (exigiria `isql`/`gbak` no host).
-- `sharedLock()`/`lock(false)` lança `RuntimeException`: o Firebird só tem lock exclusivo de linha (`WITH LOCK`); ignorar silenciosamente removeria a garantia de concorrência pedida. Use `lockForUpdate()`.
-- Em servidores 2.5, tornar uma coluna `NOT NULL` via `->change()` escreve o flag direto na tabela de sistema e **não valida as linhas existentes**: NULLs já gravados permanecem e só aparecem num ciclo de backup/restore. Garanta que a coluna não tem NULLs antes de alterá-la.
-- Colunas booleanas legadas (`CHAR(1)` criadas por versões antigas do driver) continuam funcionando para insert/where com `'0'`/`'1'`; num servidor 3+, porém, `upsert()` com `bool` do PHP casteia a fonte como `BOOLEAN` — para colunas `CHAR(1)` legadas passe `'0'`/`'1'` (ou inteiros) no upsert.
-- `orderByRandom()` ignora seed.
-- CHECK constraints não têm nomenclatura automática (o Laravel não tem `$table->check()` nativo); o único CHECK emitido é o inline do `enum()`.
-- O cliente `fbclient` deve ser compatível com o servidor: um cliente 3.0 contra servidor 4+/5 falha (`-204 Data type unknown`) ao ler tipos novos (`TIMESTAMP WITH TIME ZONE`, `DECFLOAT`, `INT128`) ou `CURRENT_TIMESTAMP` cru.
+- **`insertOrIgnore`** inserta fila por fila dentro de una transacción e ignora las violaciones de cualquier constraint única. `insertOrIgnoreUsing` resuelve los índices únicos de la tabla y genera un `NOT EXISTS` por índice.
+- **`firstOrCreate`/`createOrFirst`** funcionan ante condiciones de carrera (las violaciones de unicidad se convierten en `UniqueConstraintViolationException`).
+- **`truncate()`** emula `TRUNCATE` con `DELETE FROM` y reinicia los generadores y las columnas identity.
+- **`upsert()`** se compila a `MERGE`. Los valores de la fuente derivada reciben un `CAST` tipado (Firebird no infiere los tipos de los parámetros en tablas derivadas); los textos de más de 8191 caracteres (límite de `VARCHAR` en UTF8) usan `CAST(? AS BLOB SUB_TYPE TEXT)`.
+- **`->change()`** inspecciona la definición actual de la columna y omite el `ALTER TYPE` o los cambios de nulabilidad redundantes: una migración que solo cambia el `default` no dispara `ALTER TYPE` (que Firebird rechaza en varias conversiones). Sin una conexión inspeccionable se emiten todas las sentencias (semántica estándar de Laravel de redefinición completa).
+- **`update`/`delete` con joins** ubican las filas destino mediante `RDB$DB_KEY`.
+- **Las listas `IN` de más de 1499 elementos** se dividen automáticamente en varios grupos `IN`.
+- **`whereLike`** sigue el comportamiento de la base: `LIKE` respeta la collation de la columna (no fuerza `UPPER()`, que rompería los índices e ignoraría la collation elegida). Para una búsqueda insensible a mayúsculas y acentos, definir la columna con una collation CI/AI (p. ej. `UNICODE_CI` / `UNICODE_CI_AI`).
+- **`dropAllTables`/`dropAllViews`** usan el nombre real del catálogo (con la caja preservada), por lo que funcionan tanto con tablas en minúsculas (creadas con comillas) como en mayúsculas (legadas, creadas sin comillas).
+- **`->from(n)` / `->startingValue(n)`** en columnas autoincrementales: en servidores con identity, `ALTER ... RESTART WITH` (con el ajuste del desfase de uno de Firebird 3, donde `RESTART WITH n` genera `n+1`); en el camino legado, `SET GENERATOR ... TO n-1`. El primer valor generado es siempre `n`, en cualquier versión.
+- **`tinyText()`** pasa a `VARCHAR(255)` y **`year()`** pasa a `INTEGER`.
+- **`DB::escape($valor, binary: true)`** genera un literal hexadecimal `x'...'`.
+- **`db:show` / `db:monitor`** informan las conexiones abiertas mediante `MON$ATTACHMENTS`.
+- **Enteros en columnas `DECIMAL`/`NUMERIC` con escala.** `pdo_firebird` aplica una escala equivocada cuando un entero se enlaza con `PDO::PARAM_INT` (p. ej., `40` pasa a `0.40` en un `DECIMAL(5,2)`). El driver sobrescribe `bindValues()` para enlazar los enteros como texto (`PARAM_STR`), que Firebird convierte con la escala correcta. Vale para cualquier columna; los enteros normales, los `where` y los booleanos siguen correctos.
+- **Transacciones y autocommit.** `pdo_firebird` en autocommit graba cada comando al instante (un rollback no desharía nada); por eso el driver desactiva el autocommit al abrir la transacción y lo reactiva cuando termina la transacción externa (commit o rollback). En `DB::transaction(fn …)`, el autocommit vuelve **justo después del commit**, antes de los callbacks "después del commit" (`DB::afterCommit`, jobs y eventos con `afterCommit`): antes de la v4.0.2 volvía recién después de ellos y cualquier comando dentro de un callback fallaba con `-901 invalid transaction handle (expecting explicit transaction start)`. Los savepoints (transacciones anidadas), el rollback y el reintento ante conflicto (`DB::transaction($fn, $intentos)`) siguen como antes, cubiertos en `tests/TransactionTest.php`, verificando por una segunda conexión lo que realmente se grabó.
 
 ---
 
-## Testes
+## Limitaciones conocidas
+
+- *(actualizado)* La caja de los nombres de columna del resultado depende de `column_case` (por defecto `natural`: tal como la devuelve Firebird). Con `lower` todos vuelven en minúsculas, incluidos los alias entrecomillados.
+- `disableForeignKeyConstraints()`/`enableForeignKeyConstraints()` no hacen nada (Firebird no tiene un interruptor de FK por conexión). `dropAllTables()` elimina las FK antes que las tablas.
+- Las operaciones JSON (`whereJsonContains`, selectores `->`) no están soportadas; las columnas `json()` pasan a `BLOB SUB_TYPE TEXT`.
+- `Schema::rename()` (renombrar tabla) y `renameIndex()` no están soportados por Firebird: ambos lanzan una excepción (en lugar del no-op silencioso del framework para los métodos ausentes).
+- La opción `isolation_level` de la conexión no está soportada (en Firebird el aislamiento es por transacción; `pdo_firebird` solo expone control desde PHP 8.4).
+- `schema:dump` no está soportado (requeriría `isql`/`gbak` en el host).
+- `sharedLock()`/`lock(false)` lanza `RuntimeException`: Firebird solo tiene bloqueo exclusivo de fila (`WITH LOCK`); ignorarlo en silencio quitaría la garantía de concurrencia pedida. Usar `lockForUpdate()`.
+- En servidores 2.5, volver `NOT NULL` una columna con `->change()` escribe el indicador directamente en la tabla de sistema y **no valida las filas existentes**: los NULL ya grabados permanecen y solo aparecen tras un ciclo de backup/restore. Hay que asegurarse de que la columna no tenga NULL antes de modificarla.
+- Las columnas booleanas legadas (`CHAR(1)` creadas por versiones viejas del driver) siguen funcionando para `insert`/`where` con `'0'`/`'1'`; pero en un servidor 3+, `upsert()` con un `bool` de PHP castea la fuente como `BOOLEAN`: para columnas `CHAR(1)` legadas hay que pasar `'0'`/`'1'` (o enteros) en el `upsert`.
+- `orderByRandom()` ignora la semilla.
+- Las constraints CHECK no tienen nombre automático (Laravel no trae un `$table->check()` nativo); el único CHECK que se emite es el que lleva `enum()` en línea.
+- El cliente `fbclient` debe ser compatible con el servidor: un cliente 3.0 contra un servidor 4+/5 falla (`-204 Data type unknown`) al leer tipos nuevos (`TIMESTAMP WITH TIME ZONE`, `DECFLOAT`, `INT128`) o un `CURRENT_TIMESTAMP` crudo.
+
+---
+
+## Pruebas
 
 ```bash
-docker compose up -d        # Firebird 5 (porta 3055) e Firebird 4 (porta 3054)
+docker compose up -d        # Firebird 5 (puerto 3055) y Firebird 4 (puerto 3054)
 DB_PORT=3055 vendor/bin/phpunit
 ```
 
-Para dialeto 1, exporte `DB_DIALECT=1` apontando para um banco em dialeto 1.
+Para el dialecto 1, exportar `DB_DIALECT=1` apuntando a una base en dialecto 1.
 
-O CI (GitHub Actions) roda a suíte contra Firebird 3, 4 e 5 em PHP 8.3 e 8.4.
+La integración continua (GitHub Actions) corre la suite contra Firebird 3, 4 y 5 en PHP 8.3 y 8.4.
