@@ -83,8 +83,11 @@ Esta copia no modifica el código del driver por su cuenta: lo que se corrige o 
 | [#4](https://github.com/bensonsbc/laravel-firebird/pull/4) `fix/dialect1-metadata-keys` | La introspección de esquema fallaba en dialecto 1 (los alias de metadatos vuelven en mayúsculas). |
 | [#5](https://github.com/bensonsbc/laravel-firebird/pull/5) `fix/truncate-shared-generators` | `truncate()` ya no pone en cero un generador compartido con otras tablas, ni `dropAllTables()` intenta borrarlo. |
 | [#6](https://github.com/bensonsbc/laravel-firebird/pull/6) `feat/function-identifiers-option` | Opción `function_identifiers` para entrecomillar siempre los identificadores. |
+| [#9](https://github.com/bensonsbc/laravel-firebird/pull/9) `codex/fix-manual-commit-aftercommit` | Restaura autocommit antes de ejecutar callbacks y eventos de un commit manual. |
+| [#10](https://github.com/bensonsbc/laravel-firebird/pull/10) `codex/fix-exists-bindings` | Mantiene los parámetros de `exists()` alineados con su SQL, incluyendo unions. |
+| [#11](https://github.com/bensonsbc/laravel-firebird/pull/11) `codex/fix-upsert-expressions` | Permite expresiones SQL en los valores de origen de `upsert()`. |
 
-La rama `main` de este repositorio (la única que se usa como punto de partida) reúne esas cuatro ramas sobre la `4.x` de Benson, más PHP 8.5 en la matriz de CI ([#7](https://github.com/bensonsbc/laravel-firebird/pull/7), también propuesto a Benson, rama `ci/php-8.5`). Las ramas de los PR se conservan solo mientras el PR siga abierto.
+La rama `main` de este repositorio (la única que se usa como punto de partida) reúne las correcciones de la tabla sobre la `4.x` de Benson, más PHP 8.5 en la matriz de CI ([#7](https://github.com/bensonsbc/laravel-firebird/pull/7), también propuesto a Benson, rama `ci/php-8.5`). Las ramas de los PR se conservan solo mientras el PR siga abierto.
 
 ---
 
@@ -155,8 +158,11 @@ This copy does not change the driver code on its own: whatever is fixed or added
 | [#4](https://github.com/bensonsbc/laravel-firebird/pull/4) `fix/dialect1-metadata-keys` | Schema introspection failed in dialect 1 (metadata aliases come back in uppercase). |
 | [#5](https://github.com/bensonsbc/laravel-firebird/pull/5) `fix/truncate-shared-generators` | `truncate()` no longer zeroes a generator shared with other tables, and `dropAllTables()` no longer tries to drop it. |
 | [#6](https://github.com/bensonsbc/laravel-firebird/pull/6) `feat/function-identifiers-option` | `function_identifiers` option to always quote identifiers. |
+| [#9](https://github.com/bensonsbc/laravel-firebird/pull/9) `codex/fix-manual-commit-aftercommit` | Restores autocommit before manual-commit callbacks and events run. |
+| [#10](https://github.com/bensonsbc/laravel-firebird/pull/10) `codex/fix-exists-bindings` | Keeps `exists()` parameters aligned with its SQL, including unions. |
+| [#11](https://github.com/bensonsbc/laravel-firebird/pull/11) `codex/fix-upsert-expressions` | Supports SQL expressions in `upsert()` source values. |
 
-This repository's `main` branch (the only one used as a starting point) gathers those four branches on top of Benson's `4.x`, plus PHP 8.5 in the CI matrix ([#7](https://github.com/bensonsbc/laravel-firebird/pull/7), also proposed to Benson, branch `ci/php-8.5`). The PR branches are kept only while their PR is open.
+This repository's `main` branch (the only one used as a starting point) gathers the fixes listed above on top of Benson's `4.x`, plus PHP 8.5 in the CI matrix ([#7](https://github.com/bensonsbc/laravel-firebird/pull/7), also proposed to Benson, branch `ci/php-8.5`). The PR branches are kept only while their PR is open.
 
 ---
 
@@ -219,6 +225,12 @@ DB_PORT=3055 vendor/bin/phpunit
 Para dialecto 1, exportá `DB_DIALECT=1` apuntando a una base en dialecto 1. / For dialect 1, export `DB_DIALECT=1` pointing at a dialect-1 database.
 
 La integración continua corre la suite contra Firebird 3, 4 y 5 en PHP 8.3, 8.4 y 8.5. / CI runs the suite against Firebird 3, 4 and 5 on PHP 8.3, 8.4 and 8.5.
+
+Las regresiones de callbacks de commit manual, bindings de `exists()` (incluyendo unions) y expresiones SQL en `upsert()` también se verifican sin servidor Firebird. / Manual-commit callbacks, `exists()` bindings (including unions), and SQL expressions in `upsert()` also have regression tests that run without a Firebird server:
+
+```bash
+vendor/bin/phpunit tests/TransactionRegressionTest.php tests/ExistsRegressionTest.php tests/UpsertRegressionTest.php
+```
 
 ## Créditos completos / Full credits
 
