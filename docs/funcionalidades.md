@@ -3,13 +3,20 @@
 Referencia de las funcionalidades del driver de Firebird para Laravel. Se mantiene
 al día a medida que se agregan recursos.
 
-> **Créditos:** el driver es obra de [Alexandre Benson Smith](https://github.com/bensonsbc)
+> **Créditos:** la base del driver y gran parte de sus funcionalidades provienen de
+> [Alexandre Benson Smith](https://github.com/bensonsbc)
 > ([`bensonsbc/laravel-firebird`](https://github.com/bensonsbc/laravel-firebird)).
-> Este documento es la traducción al español de su documentación original (en
-> portugués), con ajustes menores marcados como *(actualizado)*.
+> `dasu/laravel-firebird` mantiene correcciones propias, pruebas de regresión y
+> versiones del paquete. Este documento partió de la documentación original en
+> portugués y se amplía para describir el comportamiento y las mejoras de este fork.
 >
 > La visión general y la instalación están en el [README](../README.md). Este
 > documento detalla el uso de cada recurso.
+
+La versión **v4.0.4** corrige la ejecución de consultas dentro de `afterCommit()`
+con commit manual, sincroniza los bindings de `exists()` con el SQL generado y
+admite expresiones SQL en los valores de origen de `upsert()`. Ver el
+[historial de cambios](../CHANGELOG.md) para las pruebas y el alcance de validación.
 
 ## Sumario
 

@@ -6,9 +6,9 @@ Driver de Firebird para Laravel · Firebird database driver for Laravel.
 
 > ## ⭐ Créditos / Credits
 >
-> Este trabajo se apoya enteramente en el **fork de [Alexandre Benson Smith](https://github.com/bensonsbc) — [`bensonsbc/laravel-firebird`](https://github.com/bensonsbc/laravel-firebird)** (paquete `benson/laravel-firebird`, [Thor Software](https://thorsoftware.com.br)), que llevó el driver de ~51 % a ~96 % de paridad funcional con los drivers oficiales. **Todo el mérito del driver es de Benson**; este repositorio solo mantiene la documentación en español e inglés y reúne propuestas que se envían a su repositorio como *pull requests*.
+> Este driver se basa en el **fork de [Alexandre Benson Smith](https://github.com/bensonsbc) — [`bensonsbc/laravel-firebird`](https://github.com/bensonsbc/laravel-firebird)** (paquete `benson/laravel-firebird`, [Thor Software](https://thorsoftware.com.br)), que aporta la base y gran parte de sus funcionalidades. **`dasu/laravel-firebird` es un fork mantenido con correcciones propias del driver, pruebas de regresión y documentación en español e inglés.** Las mejoras de aplicación general también se proponen al repositorio de Benson mediante *pull requests*.
 >
-> This work stands entirely on the **fork by [Alexandre Benson Smith](https://github.com/bensonsbc) — [`bensonsbc/laravel-firebird`](https://github.com/bensonsbc/laravel-firebird)** (package `benson/laravel-firebird`, [Thor Software](https://thorsoftware.com.br)), which took the driver from ~51% to ~96% functional parity with the first-party drivers. **All credit for the driver goes to Benson**; this repository only keeps the Spanish and English documentation and gathers proposals that are sent to his repository as pull requests.
+> This driver is based on the **fork by [Alexandre Benson Smith](https://github.com/bensonsbc) — [`bensonsbc/laravel-firebird`](https://github.com/bensonsbc/laravel-firebird)** (package `benson/laravel-firebird`, [Thor Software](https://thorsoftware.com.br)), which provides its foundation and much of its functionality. **`dasu/laravel-firebird` is a maintained fork with its own driver fixes, regression tests, and Spanish and English documentation.** Generally applicable improvements are also proposed to Benson's repository through pull requests.
 >
 > 💜 Apoyá el proyecto original / support the original project: **[github.com/sponsors/bensonsbc](https://github.com/sponsors/bensonsbc)**
 >
@@ -26,7 +26,9 @@ Integración previsible de Firebird con Laravel: Query Builder, Eloquent, pagina
 composer require dasu/laravel-firebird
 ```
 
-El paquete se publica en [Packagist](https://packagist.org/packages/dasu/laravel-firebird) con el nombre **`dasu/laravel-firebird`** (el código es el del fork de Benson; ver los créditos arriba). El espacio de nombres PHP no cambia: `Benson\LaravelFirebird`, y el proveedor de servicios se registra solo.
+El paquete se publica en [Packagist](https://packagist.org/packages/dasu/laravel-firebird) con el nombre **`dasu/laravel-firebird`**, con la base de Benson y las correcciones mantenidas en este fork. El espacio de nombres PHP no cambia: `Benson\LaravelFirebird`, y el proveedor de servicios se registra solo.
+
+La versión **v4.0.4** corrige los callbacks de commit manual, los parámetros de `exists()` y las expresiones SQL de `upsert()`. Los cambios y su validación están en el [CHANGELOG](CHANGELOG.md).
 
 > **Migrar desde `benson/laravel-firebird` o `harrygulliford/laravel-firebird`:** `composer remove` del paquete anterior y `composer require dasu/laravel-firebird`. No hay que tocar el código ni la configuración de la conexión.
 
@@ -75,7 +77,7 @@ Configurá la conexión en `config/database.php`:
 
 ### Qué cambia respecto del repositorio de Benson
 
-Esta copia no modifica el código del driver por su cuenta: lo que se corrige o se agrega se propone primero a [`bensonsbc/laravel-firebird`](https://github.com/bensonsbc/laravel-firebird) como *pull request*. Mientras se revisan, las ramas viven acá:
+Este fork mantiene correcciones y mejoras del código, con pruebas de regresión y versiones propias en Packagist. Las mejoras de aplicación general se proponen también a [`bensonsbc/laravel-firebird`](https://github.com/bensonsbc/laravel-firebird) como *pull requests*; mientras se revisan, las correcciones de esta tabla ya están incorporadas en nuestro `main`:
 
 | Rama / PR | Qué hace |
 | --- | --- |
@@ -101,7 +103,9 @@ A predictable Firebird integration for Laravel: Query Builder, Eloquent, paginat
 composer require dasu/laravel-firebird
 ```
 
-The package is published on [Packagist](https://packagist.org/packages/dasu/laravel-firebird) as **`dasu/laravel-firebird`** (the code is Benson's fork; see the credits above). The PHP namespace is unchanged, `Benson\LaravelFirebird`, and the service provider registers itself.
+The package is published on [Packagist](https://packagist.org/packages/dasu/laravel-firebird) as **`dasu/laravel-firebird`**, combining Benson's foundation with fixes maintained in this fork. The PHP namespace is unchanged, `Benson\LaravelFirebird`, and the service provider registers itself.
+
+Version **v4.0.4** fixes manual-commit callbacks, `exists()` bindings, and SQL expressions in `upsert()`. See the [CHANGELOG](CHANGELOG.md) for changes and validation.
 
 > **Migrating from `benson/laravel-firebird` or `harrygulliford/laravel-firebird`:** `composer remove` the old package and `composer require dasu/laravel-firebird`. No code or connection configuration changes are needed.
 
@@ -150,7 +154,7 @@ Configure the connection in `config/database.php`:
 
 ### How this differs from Benson's repository
 
-This copy does not change the driver code on its own: whatever is fixed or added is first proposed to [`bensonsbc/laravel-firebird`](https://github.com/bensonsbc/laravel-firebird) as a pull request. While they are under review, the branches live here:
+This fork maintains code fixes and improvements, regression tests, and its own Packagist releases. Generally applicable improvements are also proposed to [`bensonsbc/laravel-firebird`](https://github.com/bensonsbc/laravel-firebird) as pull requests; the fixes listed below are already included in our `main` while upstream review is pending:
 
 | Branch / PR | What it does |
 | --- | --- |
@@ -234,7 +238,8 @@ vendor/bin/phpunit tests/TransactionRegressionTest.php tests/ExistsRegressionTes
 
 ## Créditos completos / Full credits
 
-- **[Alexandre Benson Smith](https://github.com/bensonsbc)** ([Thor Software](https://thorsoftware.com.br)) — autor del fork [`bensonsbc/laravel-firebird`](https://github.com/bensonsbc/laravel-firebird), del que sale todo el driver actual / author of the fork the current driver comes from.
+- **[Alexandre Benson Smith](https://github.com/bensonsbc)** ([Thor Software](https://thorsoftware.com.br)) — autor del fork [`bensonsbc/laravel-firebird`](https://github.com/bensonsbc/laravel-firebird), base de este driver y de gran parte de sus funcionalidades / author of the fork providing this driver's foundation and much of its functionality.
+- **[jabrugger](https://github.com/jabrugger)** — mantenimiento de este fork, correcciones del driver, pruebas de regresión y documentación / maintenance of this fork, driver fixes, regression tests, and documentation.
 - **[Harry Gulliford](https://github.com/harrygulliford)** — mantenedor del fork base / maintainer of the base fork.
 - **[Jacques van Zuydam](https://github.com/jacquestvanzuydam)** — autor original / original author.
 - **Contribuidores / contributors**: mariuz, Ricardo Seriani, Victor Vilella, Donny Kurnia, Felipi Franco, Johan Weultjes, Simon Rasmussen, fesoft, selmo47, Maitrepylos, y otros / among others.
