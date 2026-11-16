@@ -13,8 +13,16 @@ jobs:
       matrix:
         php: ['8.3', '8.4', '8.5']
         firebird: ['3', '4', '5']
+        laravel: ['12', '13']
+        stability: ['prefer-stable']
+        include:
+          # Lowest supported dependency versions, to check the declared constraints.
+          - php: '8.3'
+            firebird: '5'
+            laravel: '12'
+            stability: 'prefer-lowest'
 
-    name: PHP ${{ matrix.php }} / Firebird ${{ matrix.firebird }}
+    name: PHP ${{ matrix.php }} / Firebird ${{ matrix.firebird }} / Laravel ${{ matrix.laravel }}${{ matrix.stability == 'prefer-lowest' && ' (lowest)' || '' }}
 
     env:
       DB_HOST: 127.0.0.1
@@ -52,8 +60,20 @@ jobs:
             exit 1
           fi
 
+      - name: Select Laravel 12 (Testbench 10)
+        if: matrix.laravel == '12'
+        run: composer require "orchestra/testbench:^10.3" --dev --no-update --no-interaction
+
       - name: Install dependencies
-        run: composer install --prefer-dist --no-interaction --no-progress
+        run: |
+          if [ "${{ matrix.stability }}" = "prefer-lowest" ]; then
+            composer update --prefer-lowest --prefer-dist --no-interaction --no-progress
+          else
+            composer update --prefer-dist --no-interaction --no-progress
+          fi
+
+      - name: Show resolved Laravel version
+        run: composer show laravel/framework | grep -E '^(name|versions)'
 
       - name: Wait for Firebird to be ready
         run: |
