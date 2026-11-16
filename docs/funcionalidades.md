@@ -437,4 +437,4 @@ DB_PORT=3055 vendor/bin/phpunit
 
 Para el dialecto 1, exportar `DB_DIALECT=1` apuntando a una base en dialecto 1.
 
-La integración continua (GitHub Actions) corre la suite contra Firebird 3, 4 y 5 en PHP 8.3 y 8.4.
+La integración continua (GitHub Actions) corre la suite contra Firebird 3, 4 y 5 en PHP 8.3, 8.4 y 8.5.
