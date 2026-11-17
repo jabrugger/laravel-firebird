@@ -88,6 +88,38 @@ class SchemaTest extends TestCase
     }
 
     #[Test]
+    public function it_gets_views_with_definitions_longer_than_8191_characters()
+    {
+        $view = DB::getQueryGrammar()->wrapTable('foo_long_view');
+        $padding = str_repeat('x', 9000);
+
+        try {
+            DB::statement(sprintf(
+                "create view %s as select %s, '%s' as %s from %s",
+                $view,
+                DB::getQueryGrammar()->wrap('id'),
+                $padding,
+                DB::getQueryGrammar()->wrap('pad'),
+                DB::getQueryGrammar()->wrapTable('users'),
+            ));
+
+            $definition = collect(Schema::getViews())
+                ->firstWhere('name', 'foo_long_view')['definition'] ?? null;
+
+            $this->assertNotNull($definition);
+            $this->assertStringContainsString($padding, $definition);
+        } finally {
+            try {
+                DB::statement('drop view '.$view);
+            } catch (QueryException) {
+                //
+            }
+
+            DB::disconnect();
+        }
+    }
+
+    #[Test]
     public function it_can_drop_all_views()
     {
         $firstView = DB::getQueryGrammar()->wrapTable('foo_first_view');
@@ -301,6 +333,32 @@ class SchemaTest extends TestCase
             $this->assertSame('31.50', number_format((float) $total, 2, '.', ''));
         } finally {
             Schema::dropIfExists('foo_computed');
+        }
+    }
+
+    #[Test]
+    public function it_reports_computed_columns_as_generated_in_the_introspection()
+    {
+        Schema::dropIfExists('foo_computed_info');
+
+        try {
+            $expression = config('database.connections.firebird.uppercase_identifiers')
+                ? 'CAST(QTD * 2 AS INTEGER)'
+                : 'cast("qtd" * 2 as integer)';
+
+            Schema::create('foo_computed_info', function (Blueprint $table) use ($expression) {
+                $table->integer('qtd');
+                $table->integer('dobro')->virtualAs($expression);
+            });
+
+            $columns = collect(Schema::getColumns('foo_computed_info'))->keyBy('name');
+
+            $this->assertNull($columns['qtd']['generation']);
+            $this->assertSame('virtual', $columns['dobro']['generation']['type']);
+            $this->assertStringContainsString('qtd', strtolower($columns['dobro']['generation']['expression']));
+            $this->assertStringStartsNotWith('(', $columns['dobro']['generation']['expression']);
+        } finally {
+            Schema::dropIfExists('foo_computed_info');
         }
     }
 

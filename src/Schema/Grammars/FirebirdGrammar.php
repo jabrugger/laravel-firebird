@@ -104,7 +104,7 @@ class FirebirdGrammar extends Grammar
     {
         return 'select trim(trailing from rdb$relation_name) as '.$this->wrapMetadataAlias('name').', '
             .'cast(null as varchar(31)) as '.$this->wrapMetadataAlias('schema').', '
-            .'cast(rdb$view_source as varchar(8191)) as '.$this->wrapMetadataAlias('definition').' '
+            .'rdb$view_source as '.$this->wrapMetadataAlias('definition').' '
             .'from rdb$relations '
             .'where rdb$relation_type = 1 '
             .'and (rdb$system_flag is null or rdb$system_flag = 0) '
@@ -136,7 +136,8 @@ class FirebirdGrammar extends Grammar
             .'rf.rdb$null_flag as %s, '
             .'coalesce(rf.rdb$default_source, f.rdb$default_source) as %s, '
             .$identityType.' as %s, '
-            .'rf.rdb$description as %s '
+            .'rf.rdb$description as %s, '
+            .'f.rdb$computed_source as %s '
             .'from rdb$relation_fields rf '
             .'join rdb$fields f on f.rdb$field_name = rf.rdb$field_source '
             .'where rf.rdb$relation_name = %s '
@@ -151,6 +152,7 @@ class FirebirdGrammar extends Grammar
             $this->wrapMetadataAlias('default_source'),
             $this->wrapMetadataAlias('identity_type'),
             $this->wrapMetadataAlias('comment'),
+            $this->wrapMetadataAlias('computed_source'),
             $this->quoteString($this->normalizeObjectName($table)),
         );
     }
