@@ -1004,6 +1004,47 @@ class QueryTest extends TestCase
     }
 
     #[Test]
+    public function it_can_aggregate_avg_of_distinct_values()
+    {
+        Order::factory()
+            ->count(5)
+            ->state(new Sequence(
+                ['price' => 10],
+                ['price' => 10],
+                ['price' => 10],
+                ['price' => 20],
+                ['price' => 30],
+            ))
+            ->create();
+
+        $this->assertEquals(16, DB::table('orders')->avg('price'));
+        $this->assertEquals(20, DB::table('orders')->distinct()->avg('price'));
+    }
+
+    #[Test]
+    public function it_can_filter_where_date_with_a_datetime_string_in_dialect_1()
+    {
+        if ((string) DB::connection()->getConfig('dialect') !== '1') {
+            $this->markTestSkipped('The date-number comparison only applies to dialect 1.');
+        }
+
+        $now = now()->toImmutable();
+
+        Order::factory()
+            ->forEachSequence(
+                ['created_at' => $now->subDay()],
+                ['created_at' => $now],
+            )
+            ->create();
+
+        $results = DB::table('orders')
+            ->whereDate('created_at', $now->format('Y-m-d H:i:s'))
+            ->get();
+
+        $this->assertCount(1, $results);
+    }
+
+    #[Test]
     public function it_can_aggregate_sum()
     {
         Order::factory()
