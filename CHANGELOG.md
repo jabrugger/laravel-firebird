@@ -1,5 +1,16 @@
 # Historial de cambios / Changelog
 
+## v4.0.7 — 2026-11-17
+
+### Correcciones / Fixes
+
+- En dialecto 3, `insert()`, `update()`, `where()`, `whereBetween()` y `upsert()` aceptan un `DateTimeInterface` (por ejemplo `now()`) contra una columna `DATE`; antes fallaban con -303 porque Laravel envía la fecha como texto con hora. Ahora el parámetro se declara `TIMESTAMP` y Firebird descarta la hora al guardarlo en la `DATE`. Un `where('columna_date', $carbon)` con hora compara contra la medianoche guardada, así que no coincide; para comparar por día se usa `whereDate()`. Dialecto 1 no cambia. / In dialect 3, `insert()`, `update()`, `where()`, `whereBetween()` and `upsert()` accept a `DateTimeInterface` (for example `now()`) against a `DATE` column; they used to fail with -303 because Laravel sends the date as a string with a time. The parameter is now declared as `TIMESTAMP` and Firebird drops the time when storing it in the `DATE`. A `where('date_column', $carbon)` with a time compares against the stored midnight, so it does not match; use `whereDate()` to compare by day. Dialect 1 is unchanged. [Upstream PR #17](https://github.com/bensonsbc/laravel-firebird/pull/17).
+
+### Pruebas / Validation
+
+- Una prueba nueva (`it_writes_and_compares_datetime_objects_against_a_date_column`); falla sin la corrección. / One new test; it fails without the fix.
+- PHP 8.5.0, Laravel 13.42.0, Firebird 5.0.3: dialecto 3, 266 pruebas y 712 aserciones aprobadas (1 omitida); dialecto 1, 266 pruebas, 695 aserciones y 6 omitidas, sin fallas. / Dialect 3: 266 tests and 712 assertions passing (1 skipped); dialect 1: 266 tests, 695 assertions and 6 skipped, with no failures.
+
 ## v4.0.6 — 2026-11-16
 
 ### Correcciones / Fixes
