@@ -1,0 +1,16 @@
+# Deliberately inert and disabled in the repository's Actions settings.
+#
+# Branches cut from upstream 4.x carry their own tests.yml, which fails there on
+# tests that are fixed elsewhere and mailed a failure for every pushed branch.
+# Keeping this file registered lets that workflow stay disabled. The real CI is
+# ci.yml; do not add jobs here.
+name: tests
+
+on:
+  workflow_dispatch:
+
+jobs:
+  disabled:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Disabled workflow. See ci.yml."
