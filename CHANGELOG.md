@@ -1,5 +1,19 @@
 # Historial de cambios / Changelog
 
+## v4.0.6 — 2026-11-16
+
+### Correcciones / Fixes
+
+- En dialecto 1, `avg()` con `distinct()` conserva el `distinct` en lugar de devolver el promedio simple. / In dialect 1, `avg()` with `distinct()` keeps the `distinct` instead of returning the plain average. [Upstream PR #13](https://github.com/bensonsbc/laravel-firebird/pull/13).
+- En dialecto 1, `whereDate()` con un texto de fecha y hora (`2026-11-16 10:30:00`) compara sólo la fecha; antes nunca coincidía. / In dialect 1, `whereDate()` with a date-time string compares only the date; it used to never match. [Upstream PR #14](https://github.com/bensonsbc/laravel-firebird/pull/14).
+- `Schema::getViews()` lee vistas con definiciones de más de 8.191 caracteres; antes fallaba con -802 por la conversión a `varchar(8191)`. / `Schema::getViews()` reads view definitions longer than 8191 characters; it used to fail with -802 because of the cast to `varchar(8191)`. [Upstream PR #15](https://github.com/bensonsbc/laravel-firebird/pull/15).
+- `Schema::getColumns()` informa las columnas `COMPUTED BY` con `generation` virtual y su expresión; antes devolvía siempre `null`. / `Schema::getColumns()` reports `COMPUTED BY` columns with a virtual `generation` and their expression; it used to always return `null`. [Upstream PR #16](https://github.com/bensonsbc/laravel-firebird/pull/16).
+
+### Pruebas / Validation
+
+- Cuatro pruebas nuevas, una por corrección (la de `whereDate()` sólo corre en dialecto 1). / Four new tests, one per fix (the `whereDate()` one only runs in dialect 1).
+- PHP 8.5.0, Laravel 13.42.0, Firebird 5.0.3: dialecto 3, 265 pruebas y 709 aserciones aprobadas (1 omitida); dialecto 1, 265 pruebas, 692 aserciones y 6 omitidas, sin fallas. / Dialect 3: 265 tests and 709 assertions passing (1 skipped); dialect 1: 265 tests, 692 assertions and 6 skipped, with no failures.
+
 ## v4.0.5 — 2026-11-16
 
 ### Correcciones / Fixes

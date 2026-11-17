@@ -13,8 +13,11 @@ al día a medida que se agregan recursos.
 > La visión general y la instalación están en el [README](../README.md). Este
 > documento detalla el uso de cada recurso.
 
-La versión **v4.0.5** corrige `dropAllTables()` en bases con claves foráneas legacy
-y rechaza valores con `;` en la configuración de conexión. La **v4.0.4** corrigió la
+La versión **v4.0.6** corrige `avg(distinct)` y `whereDate()` con fecha y hora en
+dialecto 1, la lectura de vistas con definiciones de más de 8.191 caracteres y la
+detección de columnas computadas en la introspección. La **v4.0.5** corrigió
+`dropAllTables()` en bases con claves foráneas legacy y rechazó valores con `;`
+en la configuración de conexión. La **v4.0.4** corrigió la
 ejecución de consultas dentro de `afterCommit()` con commit manual, sincronizó los
 bindings de `exists()` con el SQL generado y admitió expresiones SQL en los valores
 de origen de `upsert()`. Ver el
