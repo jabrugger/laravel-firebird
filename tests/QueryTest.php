@@ -1091,8 +1091,9 @@ class QueryTest extends TestCase
             });
             DB::table('foo_integrity_parent')->insert(['id' => 1, 'codigo' => 10, 'nombre' => 'a']);
 
-            // Firebird reports SQLSTATE 23000 for every integrity violation, so
-            // only the message tells a unique violation from the others.
+            // The SQLSTATE depends on the pdo_firebird build (23000 on some PHP
+            // versions, HY000 on others), so it cannot tell a unique violation
+            // from the others; only the message can.
             $violations = [
                 'primary key' => [fn () => DB::table('foo_integrity_parent')->insert(['id' => 1, 'codigo' => 11, 'nombre' => 'b']), true],
                 'unique' => [fn () => DB::table('foo_integrity_parent')->insert(['id' => 2, 'codigo' => 10, 'nombre' => 'b']), true],
@@ -1105,7 +1106,6 @@ class QueryTest extends TestCase
                     $operation();
                     $this->fail("Expected a {$name} violation.");
                 } catch (\Illuminate\Database\QueryException $e) {
-                    $this->assertSame('23000', (string) $e->getPrevious()->getCode(), $name);
                     $this->assertSame(
                         $isUnique,
                         $e instanceof \Illuminate\Database\UniqueConstraintViolationException,

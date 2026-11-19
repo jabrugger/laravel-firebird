@@ -36,15 +36,19 @@ Firebird converts that `NULL` to the target column type. Verified for all five t
 insert and update, in dialects 1 and 3.
 
 ### La detección de violaciones de unicidad (`isUniqueConstraintError`) es incompleta
-Firebird informa SQLSTATE `23000` para **toda** violación de integridad (clave primaria,
-única, foránea y `NOT NULL`), así que el SQLSTATE no sirve para distinguirlas. Lo único
-que las distingue es el mensaje, y la expresión regular cubre los dos textos que emite
-Firebird para unicidad (`violation of PRIMARY or UNIQUE KEY constraint` y
-`attempt to store duplicate value`). Verificado: clave primaria y única lanzan
-`UniqueConstraintViolationException`; foránea y `NOT NULL`, no:
+El SQLSTATE no sirve para esto: con PHP 8.4 y 8.5 Firebird lo informa como `23000` para
+todas las violaciones de integridad (clave primaria, única, foránea y `NOT NULL`), así que
+no las distingue, y con PHP 8.3 (según la compilación de `pdo_firebird`) una clave primaria
+duplicada llega como `HY000`. Lo único estable es el mensaje, y la expresión regular cubre
+los dos textos que emite Firebird para unicidad (`violation of PRIMARY or UNIQUE KEY
+constraint` y `attempt to store duplicate value`). Verificado en la CI (PHP 8.3 a 8.5,
+Firebird 3, 4 y 5): clave primaria y única lanzan `UniqueConstraintViolationException`;
+foránea y `NOT NULL`, no:
 `QueryTest::it_classifies_only_unique_violations_as_unique_constraint_errors`. /
-Firebird reports SQLSTATE `23000` for every integrity violation, so only the message can
-tell a unique violation apart; the regex covers both texts Firebird emits for it.
+SQLSTATE is not usable: on PHP 8.4/8.5 it is `23000` for every integrity violation, and
+on PHP 8.3 (depending on the `pdo_firebird` build) a duplicate primary key arrives as
+`HY000`. Only the message is stable, and the regex covers both texts Firebird emits for a
+unique violation.
 
 ### `causedByLostConnection()` distingue mayúsculas y minúsculas
 Los mensajes de `fbclient` son textos fijos en inglés; no varían por idioma. Si se observa
