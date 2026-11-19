@@ -1038,6 +1038,88 @@ class QueryTest extends TestCase
     }
 
     #[Test]
+    public function it_upserts_null_values_into_typed_columns()
+    {
+        Schema::dropIfExists('foo_upsert_null');
+
+        try {
+            Schema::create('foo_upsert_null', function (Blueprint $table) {
+                $table->integer('id')->primary();
+                $table->integer('qtd')->nullable();
+                $table->decimal('preco', 10, 2)->nullable();
+                $table->date('fecha')->nullable();
+                $table->timestamp('momento')->nullable();
+                $table->string('nombre', 50)->nullable();
+            });
+
+            $nulls = ['qtd' => null, 'preco' => null, 'fecha' => null, 'momento' => null, 'nombre' => null];
+
+            // The merge source types a NULL parameter as varchar(255); Firebird
+            // converts it to the target column type without complaint.
+            DB::table('foo_upsert_null')->upsert([['id' => 1] + $nulls], ['id'], array_keys($nulls));
+
+            DB::table('foo_upsert_null')->insert([
+                'id' => 2, 'qtd' => 5, 'preco' => '1.50', 'fecha' => '2026-11-16',
+                'momento' => '2026-11-16 10:00:00', 'nombre' => 'x',
+            ]);
+            DB::table('foo_upsert_null')->upsert([['id' => 2] + $nulls], ['id'], array_keys($nulls));
+
+            $this->assertSame(2, DB::table('foo_upsert_null')
+                ->whereNull('qtd')->whereNull('preco')->whereNull('fecha')
+                ->whereNull('momento')->whereNull('nombre')->count());
+        } finally {
+            Schema::dropIfExists('foo_upsert_null');
+        }
+    }
+
+    #[Test]
+    public function it_classifies_only_unique_violations_as_unique_constraint_errors()
+    {
+        Schema::dropIfExists('foo_integrity_child');
+        Schema::dropIfExists('foo_integrity_parent');
+
+        try {
+            Schema::create('foo_integrity_parent', function (Blueprint $table) {
+                $table->integer('id')->primary();
+                $table->integer('codigo')->unique();
+                $table->string('nombre', 20);
+            });
+            Schema::create('foo_integrity_child', function (Blueprint $table) {
+                $table->integer('id')->primary();
+                $table->integer('parent_id');
+                $table->foreign('parent_id')->references('id')->on('foo_integrity_parent');
+            });
+            DB::table('foo_integrity_parent')->insert(['id' => 1, 'codigo' => 10, 'nombre' => 'a']);
+
+            // Firebird reports SQLSTATE 23000 for every integrity violation, so
+            // only the message tells a unique violation from the others.
+            $violations = [
+                'primary key' => [fn () => DB::table('foo_integrity_parent')->insert(['id' => 1, 'codigo' => 11, 'nombre' => 'b']), true],
+                'unique' => [fn () => DB::table('foo_integrity_parent')->insert(['id' => 2, 'codigo' => 10, 'nombre' => 'b']), true],
+                'foreign key' => [fn () => DB::table('foo_integrity_child')->insert(['id' => 1, 'parent_id' => 99]), false],
+                'not null' => [fn () => DB::table('foo_integrity_parent')->insert(['id' => 3, 'codigo' => 12, 'nombre' => null]), false],
+            ];
+
+            foreach ($violations as $name => [$operation, $isUnique]) {
+                try {
+                    $operation();
+                    $this->fail("Expected a {$name} violation.");
+                } catch (\Illuminate\Database\QueryException $e) {
+                    $this->assertSame('23000', (string) $e->getPrevious()->getCode(), $name);
+                    $this->assertSame(
+                        $isUnique,
+                        $e instanceof \Illuminate\Database\UniqueConstraintViolationException,
+                        $name
+                    );
+                }
+            }
+        } finally {
+            Schema::dropIfExists('foo_integrity_child');
+            Schema::dropIfExists('foo_integrity_parent');
+        }
+    }
+
+    #[Test]
     public function it_can_aggregate_avg_of_distinct_values()
     {
         Order::factory()

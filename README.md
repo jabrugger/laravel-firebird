@@ -250,13 +250,17 @@ Leyenda / Legend: ✅ completo/full · ⚠️ parcial/partial · ❌ ausente/mis
 ## Pruebas / Tests
 
 ```bash
-docker compose up -d        # Firebird 5 (puerto/port 3055) y/and Firebird 4 (3054)
+docker compose up -d        # Firebird 5 (puerto/port 3055), 4 (3054) y/and 3 (3053)
 DB_PORT=3055 vendor/bin/phpunit
 ```
 
 Para dialecto 1, exportá `DB_DIALECT=1` apuntando a una base en dialecto 1. / For dialect 1, export `DB_DIALECT=1` pointing at a dialect-1 database.
 
-La integración continua corre la suite contra Firebird 3, 4 y 5 en PHP 8.3, 8.4 y 8.5. / CI runs the suite against Firebird 3, 4 and 5 on PHP 8.3, 8.4 and 8.5.
+La integración continua corre la suite contra Firebird 3, 4 y 5 en PHP 8.3, 8.4 y 8.5, con Laravel 12 y 13. / CI runs the suite against Firebird 3, 4 and 5 on PHP 8.3, 8.4 and 8.5, with Laravel 12 and 13.
+
+## Para quienes revisan el código / For reviewers
+
+Antes de informar un defecto, mirá [docs/decisiones-de-diseno.md](docs/decisiones-de-diseno.md): reúne los puntos que suelen señalarse y que son falsos positivos o decisiones conocidas, con cómo se verificó cada uno. / Before reporting a defect, see [docs/decisiones-de-diseno.md](docs/decisiones-de-diseno.md): it lists the points that are often reported but are false positives or known decisions, with how each was checked.
 
 Las regresiones de callbacks de commit manual, bindings de `exists()` (incluyendo unions) y expresiones SQL en `upsert()` también se verifican sin servidor Firebird. / Manual-commit callbacks, `exists()` bindings (including unions), and SQL expressions in `upsert()` also have regression tests that run without a Firebird server:
 

@@ -451,10 +451,12 @@ Schema::create('calc_temp', function (Blueprint $table) {
 ## Pruebas
 
 ```bash
-docker compose up -d        # Firebird 5 (puerto 3055) y Firebird 4 (puerto 3054)
+docker compose up -d        # Firebird 5 (puerto 3055), Firebird 4 (3054) y Firebird 3 (3053)
 DB_PORT=3055 vendor/bin/phpunit
 ```
 
 Para el dialecto 1, exportar `DB_DIALECT=1` apuntando a una base en dialecto 1.
 
-La integración continua (GitHub Actions) corre la suite contra Firebird 3, 4 y 5 en PHP 8.3, 8.4 y 8.5.
+La integración continua (GitHub Actions) corre la suite contra Firebird 3, 4 y 5 en PHP 8.3, 8.4 y 8.5, con Laravel 12 y 13.
+
+Las decisiones de diseño y las objeciones que suelen plantearse (con su verificación) están en [decisiones-de-diseno.md](decisiones-de-diseno.md).

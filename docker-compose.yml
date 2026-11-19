@@ -16,3 +16,12 @@ services:
       FIREBIRD_USE_LEGACY_AUTH: "true"
     ports:
       - "3054:3050"
+
+  firebird-v3:
+    image: firebirdsql/firebird:3
+    environment:
+      FIREBIRD_DATABASE: "database.fdb"
+      FIREBIRD_ROOT_PASSWORD: "masterkey"
+      FIREBIRD_USE_LEGACY_AUTH: "true"
+    ports:
+      - "3053:3050"
