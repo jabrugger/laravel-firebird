@@ -1,5 +1,20 @@
 # Historial de cambios / Changelog
 
+## v4.0.8 — 2026-11-20
+
+### Correcciones / Fixes
+
+- `upsert()` con muchas filas ya no falla: el origen del `MERGE` tiene un `SELECT` por fila y Firebird limita una sentencia a 256 contextos, así que desde unas 250 filas fallaba con `-902 Too many Contexts`. Ahora las filas se parten en lotes de hasta 200 filas y 30.000 parámetros, dentro de una transacción; una llamada que cabe en una sola sentencia no cambia. / `upsert()` with many rows no longer fails: the `MERGE` source has one `SELECT` per row and Firebird limits a statement to 256 contexts, so from about 250 rows it failed with `-902 Too many Contexts`. Rows are now split into chunks of up to 200 rows and 30,000 parameters inside one transaction; a call that fits in one statement is unchanged. [Upstream PR #18](https://github.com/bensonsbc/laravel-firebird/pull/18).
+
+### Documentación / Documentation
+
+- Se agregan a `docs/decisiones-de-diseno.md` los riesgos y decisiones de `function_identifiers`, la detección de versión, el costo de `insert()` por lote y el límite de `upsert()`. / `docs/decisiones-de-diseno.md` now covers `function_identifiers`, version detection, the per-row `insert()` cost and the `upsert()` limit.
+
+### Pruebas / Validation
+
+- Una prueba nueva (`it_upserts_more_rows_than_a_single_merge_statement_can_hold`); falla sin la corrección. / One new test; it fails without the fix.
+- PHP 8.5.0, Laravel 13.42.0, Firebird 5.0.3: dialecto 3, 269 pruebas y 725 aserciones aprobadas (1 omitida); dialecto 1, 269 pruebas, 708 aserciones y 6 omitidas, sin fallas. / Dialect 3: 269 tests and 725 assertions passing (1 skipped); dialect 1: 269 tests, 708 assertions and 6 skipped, with no failures.
+
 ## v4.0.7 — 2026-11-17
 
 ### Correcciones / Fixes

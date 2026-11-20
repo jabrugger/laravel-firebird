@@ -112,6 +112,55 @@ A real, known maintenance cost: the only difference is restoring autocommit befo
 `committed` event and `afterCommit` callbacks. It is reviewed on every Laravel upgrade.
 A thinner override that passes `TransactionTest` is welcome.
 
+### Los identificadores con forma de función pasan sin comillas (`function_identifiers`)
+Con `function_identifiers` en `true` (el valor por defecto), una columna como
+`upper(nombre)` no se entrecomilla. Por eso un nombre de columna tomado de datos del usuario
+(`orderBy($request->sort)`, por ejemplo) puede llevar una subconsulta o una función. La
+expresión regular viene del driver original y rechaza comillas y `;`, pero no operadores ni
+subconsultas. **Es un riesgo real y está documentado en el README**: si los nombres de
+columna vienen del usuario, hay que poner `'function_identifiers' => false` (con eso se
+entrecomilla siempre, como en los drivers de Laravel; las funciones se escriben con
+`selectRaw()` u `orderByRaw()`), o validar los nombres contra una lista. El valor por
+defecto no se cambia en una versión de parche porque rompería a quien lo usa; cambiarlo se
+evalúa para una versión menor. Verificado en
+`GrammarTest::it_can_quote_function_shaped_identifiers`. /
+With `function_identifiers` on (the default), a column such as `upper(name)` is not quoted,
+so a user-supplied column name can carry a subquery or a function. This is a real,
+README-documented risk: turn the option off, or validate names against an allow-list, when
+column names come from user input. The default is not changed in a patch release because it
+would break existing users.
+
+### `detectServerVersion()` devuelve el texto crudo si no reconoce el formato
+Las dos expresiones cubren lo que `pdo_firebird` informa en Firebird 3, 4 y 5 (lo ejercita
+toda la CI). El último recurso devuelve el texto tal cual, y las comprobaciones de capacidad
+usan `version_compare()`. Lanzar una excepción ahí haría fallar conexiones que hoy funcionan,
+así que no se cambia sin un formato real que lo requiera. /
+The two patterns cover what `pdo_firebird` reports on Firebird 3, 4 and 5 (the whole CI
+exercises them). The last resort returns the raw string; throwing there would break
+connections that work today, so it is not changed without a real format that needs it.
+
+### `insert()` por lote ejecuta una sentencia por fila
+Firebird no acepta `VALUES` de varias filas, así que cada fila es una sentencia, todas dentro
+de una transacción y con el SQL compilado una sola vez. Cada fila se prepara de nuevo: en una
+medición local (Firebird 5, mismo equipo) 5.000 filas tardaron 2,0 s con el driver contra 1,0 s
+reutilizando un único `prepare` a mano. Es un costo conocido y no un defecto; la alternativa
+`INSERT ... SELECT ... UNION ALL` toparía con el mismo límite de 256 contextos por sentencia
+que tenía `upsert()`. /
+Firebird has no multi-row `VALUES`, so each row is one statement inside a transaction, with
+the SQL compiled once. Each row is prepared again: in a local measurement 5,000 rows took 2.0 s
+with the driver versus 1.0 s reusing one hand-made `prepare`. A known cost, not a defect; the
+`UNION ALL` alternative would hit the same 256-context limit.
+
+### `upsert()` con muchas filas se parte en varias sentencias `MERGE`
+Cada fila del origen del `MERGE` es un `SELECT ... FROM RDB$DATABASE`, y Firebird limita una
+sentencia a 256 contextos (más de unas 250 filas fallaban con `-902`) y a 32.767 parámetros.
+Desde la 4.0.8 las filas se parten en lotes de hasta 200 filas y 30.000 parámetros dentro de
+una transacción; una llamada que cabe en una sola sentencia no cambia. Verificado en
+`QueryTest::it_upserts_more_rows_than_a_single_merge_statement_can_hold`. /
+Each source row is a `SELECT ... FROM RDB$DATABASE` and Firebird allows 256 contexts and
+32,767 parameters per statement, so more than about 250 rows failed. Since 4.0.8 rows are
+split into chunks of up to 200 rows and 30,000 parameters inside one transaction.
+
 ### Una fecha con hora contra una columna `DATE`
 Con un objeto de fecha (`Carbon`, `now()`) funciona desde la 4.0.7: el parámetro se declara
 `TIMESTAMP` y Firebird descarta la hora al guardar. `SerializesFirebirdDates` sólo cubre los

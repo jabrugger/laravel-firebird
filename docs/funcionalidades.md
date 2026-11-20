@@ -13,7 +13,8 @@ al día a medida que se agregan recursos.
 > La visión general y la instalación están en el [README](../README.md). Este
 > documento detalla el uso de cada recurso.
 
-La versión **v4.0.7** permite pasar fechas con hora (`Carbon`, `now()`) a columnas
+La versión **v4.0.8** corrige `upsert()` con más de unas 250 filas, que ahora se parte
+en varias sentencias `MERGE`. La **v4.0.7** permite pasar fechas con hora (`Carbon`, `now()`) a columnas
 `DATE` desde el query builder en dialecto 3. La **v4.0.6** corrigió `avg(distinct)` y `whereDate()` con fecha y hora en
 dialecto 1, la lectura de vistas con definiciones de más de 8.191 caracteres y la
 detección de columnas computadas en la introspección. La **v4.0.5** corrigió
