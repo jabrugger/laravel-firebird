@@ -120,15 +120,23 @@ expresión regular viene del driver original y rechaza comillas y `;`, pero no o
 subconsultas. **Es un riesgo real y está documentado en el README**: si los nombres de
 columna vienen del usuario, hay que poner `'function_identifiers' => false` (con eso se
 entrecomilla siempre, como en los drivers de Laravel; las funciones se escriben con
-`selectRaw()` u `orderByRaw()`), o validar los nombres contra una lista. El valor por
-defecto no se cambia en una versión de parche porque rompería a quien lo usa; cambiarlo se
-evalúa para una versión menor. Verificado en
+`selectRaw()` u `orderByRaw()`), o validar los nombres contra una lista.
+
+**Por qué no se endureció en un parche:** una subconsulta escalar legítima en una columna
+(`coalesce((select max(x) from t), 0)`) y un ataque (`coalesce(senha, (select first 1 senha
+from usuarios))`) tienen exactamente la misma forma, así que ninguna expresión regular bloquea
+uno sin bloquear el otro. Endurecerla obligaría a quien hoy usa esas subconsultas a
+reescribirlas con `selectRaw()`, y un parche (4.0.x) no le exige eso a nadie. Se hará en la
+4.1, probablemente con `false` por defecto. Verificado en
 `GrammarTest::it_can_quote_function_shaped_identifiers`. /
 With `function_identifiers` on (the default), a column such as `upper(name)` is not quoted,
 so a user-supplied column name can carry a subquery or a function. This is a real,
 README-documented risk: turn the option off, or validate names against an allow-list, when
-column names come from user input. The default is not changed in a patch release because it
-would break existing users.
+column names come from user input. **Why it was not hardened in a patch:** a legitimate scalar
+subquery in a column and an attack have exactly the same shape, so no regex can block one
+without the other; tightening it would force existing users to rewrite those subqueries, and
+a 4.0.x patch asks nothing of anyone. It will change in 4.1, probably with the default set to
+`false`.
 
 ### `detectServerVersion()` devuelve el texto crudo si no reconoce el formato
 Las dos expresiones cubren lo que `pdo_firebird` informa en Firebird 3, 4 y 5 (lo ejercita
@@ -184,6 +192,11 @@ against a `DATE` column still fails with -303, which is Firebird's behavior.
 - **`tests.yml` está inerte a propósito.** Las ramas que se proponen al repositorio original
   salen de su rama `4.x`, que tiene su propio `tests.yml` y 3 pruebas rotas que arregla otro
   PR; ese workflow está deshabilitado en el fork. La CI real es `ci.yml`.
+- **Política de versiones:** un parche (4.0.x) no obliga a nadie a cambiar ni a revisar su
+  código; los cambios de comportamiento que sí lo harían (por ejemplo el valor por defecto
+  de `function_identifiers`) esperan a la siguiente versión menor (4.1). / A patch (4.0.x)
+  never requires anyone to change or review their code; behavior changes that would wait for
+  the next minor version (4.1).
 - **Opciones de conexión:** se configuran en el arreglo de la conexión en
   `config/database.php`; no hay archivo de configuración publicable.
 - **`CHANGELOG.md`** existe (bilingüe, por versión) y la documentación está en castellano e
